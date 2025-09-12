@@ -231,6 +231,38 @@ function buildPreview() {
   }
   additionalInfo.innerHTML = additionalInfoHTML;
 
+  // Informações de pagamento e entrega - REMOVER DUPLICAÇÕES
+  // Primeiro, remova qualquer seção de pagamento existente
+  const existingPaymentInfo = document.querySelector('.payment-info-section');
+  if (existingPaymentInfo) {
+      existingPaymentInfo.remove();
+  }
+
+  // Format payment method text
+  let paymentText = paymentMethod.value || "—";
+  if (paymentMethod.value === "Faturamento" && billingDaysInput.value) {
+      paymentText = `Faturamento em ${billingDaysInput.value} dias`;
+  }
+
+  // Criar nova seção apenas se houver informações
+  if (paymentMethod.value || leadTime.value) {
+      const paymentInfo = `
+          <div class="doc-kv payment-info-section" style="margin-top: 15px;">
+              <div>
+                  <span class="kv-key">Forma de Pagamento</span>
+                  <div>${escapeHtml(paymentText)}</div>
+              </div>
+              <div>
+                  <span class="kv-key">Prazo de Entrega</span>
+                  <div>${escapeHtml(leadTime.value || "A combinar")}</div>
+              </div>
+          </div>
+      `;
+      
+      // Adiciona as informações de pagamento e entrega após additionalInfo
+      additionalInfo.insertAdjacentHTML('afterend', paymentInfo);
+  }
+
   // items
   const items = getItems();
   pd_items.innerHTML = items
@@ -506,7 +538,7 @@ function showNotification(message, type = "info") {
   notification.className = `notification notification-${type}`;
   notification.textContent = message;
 
-  // Estilos para a notificação
+  // Estilos para la notificación
   Object.assign(notification.style, {
     position: "fixed",
     top: "30px",
