@@ -1,0 +1,27 @@
+{
+  "name": "Gerador de Proposta Comercial - Grupo Performance Ocupacional",
+  "short_name": "Gerador Proposta",
+  "description": "Sistema web para geração de propostas comerciais de saúde e segurança ocupacional",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "pt-BR",
+  "dir": "ltr"
+}
