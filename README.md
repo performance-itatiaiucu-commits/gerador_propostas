@@ -129,20 +129,32 @@ Configure as condições:
 ```
 gerador-proposta-performance/
 ├── index.html              # Página principal
-├── style.css               # Folha de estilos
-├── script.js               # Lógica da aplicação
 ├── README.md               # Esta documentação
 ├── LICENSE                 # Licença de uso
 ├── CHANGELOG.md            # Histórico de versões
 ├── CONTRIBUTING.md         # Guia de contribuição
 ├── PLANO_MELHORIAS.md      # Plano de melhorias futuras
-└── assets/
-    ├── Logo1.png           # Logo da empresa
-    ├── favicon.ico         # Favicon principal
-    ├── favicon-16x16.png   # Favicons variados
-    ├── favicon-32x32.png
-    ├── favicon-192x192.png
-    └── favicon-512x512.png
+├── GUIA_USO.md             # Guia de uso completo
+├── AVALIACAO_PROFISSIONAL.md
+├── CHECKLIST_IMPLANTACAO.md
+├── INDICE_DOCUMENTACAO.md
+├── PRIVACIDADE_SEGURANCA.md
+└── src/
+    ├── manifest.json       # Manifesto PWA
+    ├── css/
+    │   └── style.css       # Folha de estilos
+    ├── js/
+    │   └── script.js       # Lógica da aplicação
+    ├── assets/
+    │   ├── Logotipo.png    # Logo da empresa
+    │   ├── Logo1.png       # Logo alternativa
+    │   ├── favicon.ico     # Favicon principal
+    │   ├── favicon-16x16.png
+    │   ├── favicon-32x32.png
+    │   ├── favicon-192x192.png
+    │   ├── favicon-512x512.png
+    │   └── apple-touch-icon.png
+    └── components/         # Componentes (futuro)
 ```
 
 ---
@@ -150,7 +162,7 @@ gerador-proposta-performance/
 ## 🔧 Personalização
 
 ### Alterar Cores
-Edite as variáveis CSS em `style.css`:
+Edite as variáveis CSS em `src/css/style.css`:
 
 ```css
 :root {
@@ -164,11 +176,11 @@ Edite as variáveis CSS em `style.css`:
 ### Alterar Logo
 Substitua a URL da logo em `index.html`:
 ```html
-<img id="brandLogo" src="URL_DA_SUA_LOGO" alt="Performance" />
+<img id="brandLogo" src="src/assets/URL_DA_SUA_LOGO" alt="Performance" />
 ```
 
 ### Alterar Informações de Faturamento
-Edite a seção em `index.html` (linhas ~280-296):
+Edite a seção em `index.html` (linhas ~307-323):
 ```html
 <div class="billing-info">
   <!-- Suas informações aqui -->
