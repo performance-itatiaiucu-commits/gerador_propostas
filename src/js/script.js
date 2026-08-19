@@ -158,7 +158,7 @@ paymentMethod.addEventListener('change', ()=>{ billingDays.style.display = payme
 billingDaysInput.addEventListener('input', ()=>{ if(previewUnlocked) buildPreview(); });
 leadTime.addEventListener('input', ()=>{ if(previewUnlocked) buildPreview(); });
 
-/* Logo upload com validação 2MB — 192px (máx. 540px) no preview e no PDF */
+/* Logo upload com validação 2MB — 64px (máx. 200px) no preview e no PDF */
 let clientLogoData='';
 const MAX_LOGO_BYTES = 2*1024*1024;
 function applyClientLogo(){

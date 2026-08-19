@@ -181,12 +181,11 @@ textarea { min-height:96px; resize:vertical; }
 .doc-kv { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
 .kv-key { font-weight:800; color:var(--muted); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px; }
 .kv-value, .kv-val { display:flex; align-items:center; gap:12px; font-size:0.92rem; font-weight:500; flex-wrap:wrap; }
-.doc-kv > div:has(.client-logo.is-visible) { grid-column: 1 / -1; }
 .client-logo {
-  height: 192px;
+  height: 64px;
   width: auto;
-  max-width: 540px;
-  max-height: 540px;
+  max-width: 200px;
+  max-height: 64px;
   border-radius: 8px;
   object-fit: contain;
   object-position: left center;
@@ -286,8 +285,7 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   .layout{ display:block; }
   .preview-column{ width:100%; }
   .proposal-doc{ box-shadow:none; border:none; padding:0; border-radius:0; }
-  .client-logo.is-visible { display: inline-block !important; height: 192px; max-width: 540px; max-height: 540px; }
-  .doc-kv > div:has(.client-logo.is-visible) { grid-column: 1 / -1; }
+  .client-logo.is-visible { display: inline-block !important; height: 64px; max-width: 200px; max-height: 64px; }
   .doc-signatures { page-break-inside: avoid; }
   .sig-space { height: 88px; }
   .sig-line { width: 100%; border-bottom: 1.5px solid #0a1e32; }
