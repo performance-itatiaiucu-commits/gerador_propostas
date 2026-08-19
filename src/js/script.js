@@ -56,7 +56,6 @@ const pd_discount_value = $('#pd_discount_value');
 const pd_discount_pct = $('#pd_discount_pct');
 const pd_total = $('#pd_total');
 const additionalInfo = $('#additionalInfo');
-const pd_sig_issuer_contact = $('#pd_sig_issuer_contact');
 const pd_sig_client = $('#pd_sig_client');
 
 const previewEmpty = $('#previewEmpty');
@@ -159,7 +158,7 @@ paymentMethod.addEventListener('change', ()=>{ billingDays.style.display = payme
 billingDaysInput.addEventListener('input', ()=>{ if(previewUnlocked) buildPreview(); });
 leadTime.addEventListener('input', ()=>{ if(previewUnlocked) buildPreview(); });
 
-/* Logo upload com validação 2MB — 64px (máx. 180px) no preview e no PDF */
+/* Logo upload com validação 2MB — 192px (máx. 540px) no preview e no PDF */
 let clientLogoData='';
 const MAX_LOGO_BYTES = 2*1024*1024;
 function applyClientLogo(){
@@ -201,11 +200,8 @@ function buildPreview(){
   pd_email.textContent = email.value || '—';
 
   applyClientLogo();
-  if(pd_sig_issuer_contact){
-    pd_sig_issuer_contact.textContent = (responsible.value ? responsible.value : '—') + (phone.value ? ' • '+phone.value : '');
-  }
   if(pd_sig_client){
-    pd_sig_client.textContent = company.value || '—';
+    pd_sig_client.textContent = company.value.trim() || '—';
   }
 
   // additional info
