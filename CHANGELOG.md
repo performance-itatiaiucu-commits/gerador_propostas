@@ -4,6 +4,18 @@ Baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e [SemVer
 
 ---
 
+## [3.0.1] — 2026-08-19 — Logo e assinaturas
+
+### ✨ Adicionado
+- **Bloco de assinaturas** no modelo final (preview e PDF), com duas colunas:
+  - **Responsável pela Proposta** — `Grupo Performance Ocupacional` + responsável e telefone do formulário.
+  - **Cliente** — nome da empresa + texto **Assinatura e carimbo** (espaço para rubrica física).
+
+### 🔄 Alterado
+- **Logo do cliente** no documento: de 28×28 px para **64 px de altura**, com **máximo de 180 px** (largura/altura), visível no preview A4 e no PDF gerado pelo html2pdf.
+
+---
+
 ## [3.0.0] — 2026-08-19 — Corporativa
 
 ### 🎯 Objetivo

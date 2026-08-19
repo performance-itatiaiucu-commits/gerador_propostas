@@ -70,6 +70,8 @@ O 3.0 bloqueia o preview até a última etapa para garantir proposta completa.
 - Papel A4, retrato, margens padrão.
 - Cores e logos preservados; tabelas com quebra automática.
 - Nome do arquivo usa Empresa (sanitizada) + nº do documento da barra de status.
+- **Logo do cliente** aparece ao lado do nome da empresa (64 px de altura, até 180 px).
+- **Assinaturas** no final do documento: *Responsável pela Proposta* (Grupo Performance Ocupacional + responsável/telefone) e *Cliente* (nome da empresa + “Assinatura e carimbo”).
 
 ---
 

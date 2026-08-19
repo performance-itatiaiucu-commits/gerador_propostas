@@ -56,6 +56,8 @@ const pd_discount_value = $('#pd_discount_value');
 const pd_discount_pct = $('#pd_discount_pct');
 const pd_total = $('#pd_total');
 const additionalInfo = $('#additionalInfo');
+const pd_sig_issuer_contact = $('#pd_sig_issuer_contact');
+const pd_sig_client = $('#pd_sig_client');
 
 const previewEmpty = $('#previewEmpty');
 const previewSticky = $('#previewSticky');
@@ -157,9 +159,23 @@ paymentMethod.addEventListener('change', ()=>{ billingDays.style.display = payme
 billingDaysInput.addEventListener('input', ()=>{ if(previewUnlocked) buildPreview(); });
 leadTime.addEventListener('input', ()=>{ if(previewUnlocked) buildPreview(); });
 
-/* Logo upload com validação 2MB */
+/* Logo upload com validação 2MB — 64px (máx. 180px) no preview e no PDF */
 let clientLogoData='';
 const MAX_LOGO_BYTES = 2*1024*1024;
+function applyClientLogo(){
+  if(!pd_client_logo) return;
+  if(clientLogoData){
+    pd_client_logo.src = clientLogoData;
+    pd_client_logo.hidden = false;
+    pd_client_logo.classList.add('is-visible');
+    pd_client_logo.style.display = 'inline-block';
+  } else {
+    pd_client_logo.removeAttribute('src');
+    pd_client_logo.hidden = true;
+    pd_client_logo.classList.remove('is-visible');
+    pd_client_logo.style.display = 'none';
+  }
+}
 clientLogoInput.addEventListener('change', e=>{
   const file = e.target.files && e.target.files[0];
   if(!file) return;
@@ -170,7 +186,7 @@ clientLogoInput.addEventListener('change', e=>{
   fileLabelText.textContent = file.name;
   fileHint.textContent = `${file.name} • ${(file.size/1024).toFixed(0)} KB`;
   const reader = new FileReader();
-  reader.onload = ()=>{ clientLogoData = reader.result; if(previewUnlocked) buildPreview(); };
+  reader.onload = ()=>{ clientLogoData = reader.result; applyClientLogo(); if(previewUnlocked) buildPreview(); };
   reader.readAsDataURL(file);
 });
 
@@ -184,7 +200,13 @@ function buildPreview(){
   pd_contract.textContent = contractType.value || '—';
   pd_email.textContent = email.value || '—';
 
-  if(clientLogoData){ pd_client_logo.src = clientLogoData; pd_client_logo.style.display='inline'; } else { pd_client_logo.style.display='none'; }
+  applyClientLogo();
+  if(pd_sig_issuer_contact){
+    pd_sig_issuer_contact.textContent = (responsible.value ? responsible.value : '—') + (phone.value ? ' • '+phone.value : '');
+  }
+  if(pd_sig_client){
+    pd_sig_client.textContent = company.value || '—';
+  }
 
   // additional info
   let html='';
@@ -288,7 +310,8 @@ function loadDraftInternal(silent=false){
     email.value=d.email||''; taxId.value=d.taxId||''; address.value=d.address||''; city.value=d.city||''; stateEl.value=d.state||''; notes.value=d.notes||''; if(notesCount) notesCount.textContent=(d.notes||'').length;
     discountEl.value=d.discount||0; paymentMethod.value=d.payment||'À vista'; paymentMethod.dispatchEvent(new Event('change')); billingDaysInput.value=d.billingDays||''; leadTime.value=d.leadTime||'';
     itemsBody.innerHTML=''; (d.items||[]).forEach(it=> createItemRow(it));
-    if(d.logo){ clientLogoData=d.logo; pd_client_logo.src=clientLogoData; if(fileLabelText) fileLabelText.textContent='Logo carregada'; }
+    if(d.logo){ clientLogoData=d.logo; applyClientLogo(); if(fileLabelText) fileLabelText.textContent='Logo carregada'; }
+    else { clientLogoData=''; applyClientLogo(); }
     if(d.meta && d.meta.docNumber){ currentDocNumber=d.meta.docNumber; docNumber.textContent=currentDocNumber; docNumberLabel.textContent=currentDocNumber; }
     updateTotals();
     if(!silent) showNotification('Rascunho carregado.', 'success');
@@ -324,11 +347,19 @@ downloadBtn.addEventListener('click', async ()=>{
   downloadBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
   downloadBtn.disabled=true;
   try{
+    if(clientLogoData && pd_client_logo && !pd_client_logo.complete){
+      await new Promise(resolve=>{
+        const done=()=>resolve();
+        pd_client_logo.addEventListener('load', done, {once:true});
+        pd_client_logo.addEventListener('error', done, {once:true});
+        setTimeout(done, 800);
+      });
+    }
     const opt={
       margin: [8,8,8,8],
       filename,
       image:{ type:'jpeg', quality:0.98 },
-      html2canvas:{ scale:2, useCORS:true, backgroundColor:'#ffffff' },
+      html2canvas:{ scale:2, useCORS:true, backgroundColor:'#ffffff', logging:false },
       jsPDF:{ unit:'mm', format:'a4', orientation:'portrait' },
       pagebreak:{ mode:['css','legacy'] }
     };
