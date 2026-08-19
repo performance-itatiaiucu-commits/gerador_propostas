@@ -182,10 +182,10 @@ textarea { min-height:96px; resize:vertical; }
 .kv-key { font-weight:800; color:var(--muted); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px; }
 .kv-value, .kv-val { display:flex; align-items:center; gap:12px; font-size:0.92rem; font-weight:500; flex-wrap:wrap; }
 .client-logo {
-  height: 64px;
+  height: 192px;
   width: auto;
-  max-width: 200px;
-  max-height: 64px;
+  max-width: 540px;
+  max-height: 192px;
   border-radius: 8px;
   object-fit: contain;
   object-position: left center;
@@ -196,6 +196,8 @@ textarea { min-height:96px; resize:vertical; }
   display: none;
 }
 .client-logo.is-visible { display: inline-block; }
+/* Com logo anexada, o bloco da empresa ocupa a largura total (não fica espremido) */
+.doc-kv.logo-present .company-cell { grid-column: 1 / -1; }
 .doc-items { margin-top:14px; }
 .pd-table { width:100%; border-collapse:collapse; border-radius:10px; overflow:hidden; border:1px solid var(--border); }
 .pd-table th { background:var(--primary); color:#fff; font-weight:700; padding:10px 12px; text-align:left; font-size:0.80rem; }
@@ -285,10 +287,49 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   .layout{ display:block; }
   .preview-column{ width:100%; }
   .proposal-doc{ box-shadow:none; border:none; padding:0; border-radius:0; }
-  .client-logo.is-visible { display: inline-block !important; height: 64px; max-width: 200px; max-height: 64px; }
+  .client-logo.is-visible { display: inline-block !important; height: 192px; max-width: 540px; max-height: 192px; }
   .doc-signatures { page-break-inside: avoid; }
   .sig-space { height: 88px; }
   .sig-line { width: 100%; border-bottom: 1.5px solid #0a1e32; }
+  .doc-header, .doc-kv, .doc-items, .pd-table tr, .doc-totals, .billing-info, .billing-section, .doc-accept, .sig-block {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
+
+/* ---- Exportação PDF (clone em largura A4 fixa) ---- */
+#pdf-export-wrap {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: 794px; /* 210mm ≈ A4 @96dpi */
+  background: #fff;
+  pointer-events: none;
+}
+#pdf-export-wrap .proposal-doc {
+  width: 794px;
+  max-width: none;
+  margin: 0;
+  padding: 22px 26px 18px;
+  box-shadow: none;
+  border: none;
+  border-top: 0;
+  border-radius: 0;
+  background: #fff;
+}
+#pdf-export-wrap .doc-header,
+#pdf-export-wrap .doc-kv,
+#pdf-export-wrap .payment-info-section,
+#pdf-export-wrap .doc-items,
+#pdf-export-wrap .pd-table tr,
+#pdf-export-wrap .doc-totals,
+#pdf-export-wrap .billing-info,
+#pdf-export-wrap .billing-section,
+#pdf-export-wrap .doc-accept,
+#pdf-export-wrap .doc-signatures,
+#pdf-export-wrap .sig-block {
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 /* File input */

@@ -158,21 +158,24 @@ paymentMethod.addEventListener('change', ()=>{ billingDays.style.display = payme
 billingDaysInput.addEventListener('input', ()=>{ if(previewUnlocked) buildPreview(); });
 leadTime.addEventListener('input', ()=>{ if(previewUnlocked) buildPreview(); });
 
-/* Logo upload com validação 2MB — 64px (máx. 200px) no preview e no PDF */
+/* Logo upload com validação 2MB — 192px (máx. 540px) no preview e no PDF */
 let clientLogoData='';
 const MAX_LOGO_BYTES = 2*1024*1024;
 function applyClientLogo(){
   if(!pd_client_logo) return;
+  const clientKv = proposalDoc ? proposalDoc.querySelector('.doc-client-kv') : null;
   if(clientLogoData){
     pd_client_logo.src = clientLogoData;
     pd_client_logo.hidden = false;
     pd_client_logo.classList.add('is-visible');
     pd_client_logo.style.display = 'inline-block';
+    if(clientKv) clientKv.classList.add('logo-present');
   } else {
     pd_client_logo.removeAttribute('src');
     pd_client_logo.hidden = true;
     pd_client_logo.classList.remove('is-visible');
     pd_client_logo.style.display = 'none';
+    if(clientKv) clientKv.classList.remove('logo-present');
   }
 }
 clientLogoInput.addEventListener('change', e=>{
@@ -335,39 +338,75 @@ clearDraftBtn.addEventListener('click', ()=>{
   }
 });
 
-/* PDF Download - substitui Imprimir */
-downloadBtn.addEventListener('click', async ()=>{
-  if(!previewUnlocked){ showNotification('Clique em Carregar & Preview primeiro.', 'warning'); return; }
+/* PDF Download - exporta clone em largura A4 fixa (evita cortes e layout responsivo) */
+async function exportPDF(){
   buildPreview();
+
   const filename = `Proposta-${(company.value||'Cliente').replace(/[^a-zA-Z0-9]/g,'_')}-${currentDocNumber}.pdf`;
-  downloadBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
-  downloadBtn.disabled=true;
-  try{
-    if(clientLogoData && pd_client_logo && !pd_client_logo.complete){
-      await new Promise(resolve=>{
-        const done=()=>resolve();
-        pd_client_logo.addEventListener('load', done, {once:true});
-        pd_client_logo.addEventListener('error', done, {once:true});
-        setTimeout(done, 800);
-      });
+
+  // Garante que a fonte Inter esteja carregada antes do canvas (evita fonte errada no PDF)
+  try { await Promise.race([document.fonts.ready, new Promise(r=>setTimeout(r,1500))]); } catch(_){}
+
+  // Aguarda a logo do cliente terminar de carregar, se houver
+  if(clientLogoData && pd_client_logo && !pd_client_logo.complete){
+    await new Promise(resolve=>{
+      const done=()=>resolve();
+      pd_client_logo.addEventListener('load', done, {once:true});
+      pd_client_logo.addEventListener('error', done, {once:true});
+      setTimeout(done, 1200);
+    });
+  }
+
+  // Cria um container fora da tela com largura fixa A4 (794px ≈ 210mm) e clona o documento.
+  // Isso desacopla o PDF do layout responsivo (coluna de 560px / sticky), que causava
+  // dimensionamento incorreto e conteúdo cortado entre páginas.
+  const wrap = document.createElement('div');
+  wrap.id = 'pdf-export-wrap';
+  const clone = proposalDoc.cloneNode(true);
+  clone.removeAttribute('id');
+  clone.querySelectorAll('[id]').forEach(el=> el.removeAttribute('id'));
+  wrap.appendChild(clone);
+  document.body.appendChild(wrap);
+
+  const opt = {
+    margin: 8,
+    filename,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      windowWidth: 1200, // força layout desktop (duas colunas) independente da tela
+      logging: false
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: {
+      mode: ['avoid-all', 'css', 'legacy'],
+      avoid: ['.doc-header', '.doc-kv', '.pd-table tr', '.doc-totals', '.billing-info', '.billing-section', '.doc-accept', '.doc-signatures', '.sig-block']
     }
-    const opt={
-      margin: [8,8,8,8],
-      filename,
-      image:{ type:'jpeg', quality:0.98 },
-      html2canvas:{ scale:2, useCORS:true, backgroundColor:'#ffffff', logging:false },
-      jsPDF:{ unit:'mm', format:'a4', orientation:'portrait' },
-      pagebreak:{ mode:['css','legacy'] }
-    };
-    await html2pdf().set(opt).from(proposalDoc).save();
+  };
+
+  try{
+    await html2pdf().set(opt).from(wrap).save();
     showNotification('PDF baixado: '+filename, 'success');
     // gera novo número para próxima proposta
     currentDocNumber = genDocNumber();
     docNumber.textContent = currentDocNumber;
     docNumberLabel.textContent = currentDocNumber;
+  } finally {
+    if(wrap.parentNode) wrap.parentNode.removeChild(wrap);
+  }
+}
+
+downloadBtn.addEventListener('click', async ()=>{
+  if(!previewUnlocked){ showNotification('Clique em Carregar & Preview primeiro.', 'warning'); return; }
+  downloadBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
+  downloadBtn.disabled=true;
+  try{
+    await exportPDF();
   }catch(e){
     console.error(e);
-    // fallback: print
+    // fallback: impressão do navegador
     window.print();
     showNotification('Falha no gerador PDF — abrindo impressão.', 'warning');
   }finally{
