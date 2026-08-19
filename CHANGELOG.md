@@ -4,6 +4,14 @@ Baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e [SemVer
 
 ---
 
+## [3.0.2] — 2026-08-19 — Logo do cliente maior e assinaturas tradicionais
+
+### 🔄 Alterado
+- **Logo do cliente** no documento: de 64 px (máx. 180 px) para **192 px de altura**, com **máximo de 540 px** (3× o tamanho anterior), no preview A4 e no PDF. Com logo anexada, o bloco da empresa ocupa a largura total para a marca não ficar espremida.
+- **Assinaturas** no final: linhas largas no estilo tradicional de contrato, com espaço para rubrica a caneta. Abaixo das linhas: **Performance Ocupacional** e o **nome da empresa cliente** preenchido no formulário.
+
+---
+
 ## [3.0.1] — 2026-08-19 — Logo e assinaturas
 
 ### ✨ Adicionado

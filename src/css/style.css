@@ -181,17 +181,18 @@ textarea { min-height:96px; resize:vertical; }
 .doc-kv { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
 .kv-key { font-weight:800; color:var(--muted); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px; }
 .kv-value, .kv-val { display:flex; align-items:center; gap:12px; font-size:0.92rem; font-weight:500; flex-wrap:wrap; }
+.doc-kv > div:has(.client-logo.is-visible) { grid-column: 1 / -1; }
 .client-logo {
-  height: 64px;
+  height: 192px;
   width: auto;
-  max-width: 180px;
-  max-height: 180px;
+  max-width: 540px;
+  max-height: 540px;
   border-radius: 8px;
   object-fit: contain;
   object-position: left center;
   border: 1px solid var(--border);
   background: #fff;
-  padding: 4px;
+  padding: 6px;
   flex-shrink: 0;
   display: none;
 }
@@ -208,27 +209,37 @@ textarea { min-height:96px; resize:vertical; }
 .doc-signatures {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 36px;
-  margin-top: 28px;
-  padding: 8px 4px 0;
+  column-gap: 40px;
+  row-gap: 36px;
+  margin-top: 48px;
+  padding: 8px 0 4px;
   page-break-inside: avoid;
 }
-.sig-block { text-align: center; min-width: 0; }
-.sig-label {
-  font-size: 0.70rem;
-  font-weight: 800;
-  letter-spacing: 0.7px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 8px;
+.sig-block {
+  text-align: center;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.sig-space {
+  height: 88px;
 }
 .sig-line {
-  height: 56px;
-  border-bottom: 1.5px solid var(--primary);
-  margin: 0 10px 12px;
+  width: 100%;
+  height: 0;
+  border: 0;
+  border-bottom: 1.5px solid var(--primary-dark);
+  margin: 0 0 10px;
 }
-.sig-name { font-weight: 800; color: var(--primary); font-size: 0.90rem; line-height: 1.35; word-break: break-word; }
-.sig-meta { font-size: 0.78rem; color: var(--muted); font-weight: 500; margin-top: 3px; }
+.sig-name {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 0.88rem;
+  line-height: 1.35;
+  word-break: break-word;
+  padding: 0 2px;
+}
 .doc-footer { display:flex; justify-content:space-between; padding-top:16px; border-top:1px solid var(--border); color:var(--muted); font-size:0.78rem; margin-top:16px; }
 .billing-info { background:linear-gradient(135deg,#f0f7ff 0%, #e8eef6 100%); border-radius:12px; padding:16px; margin:18px 0; border-left:4px solid var(--primary); }
 .billing-info h4 { color:var(--primary); border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:12px; display:flex; gap:8px; align-items:center; font-weight:800; font-size:0.92rem; }
@@ -275,8 +286,11 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   .layout{ display:block; }
   .preview-column{ width:100%; }
   .proposal-doc{ box-shadow:none; border:none; padding:0; border-radius:0; }
-  .client-logo.is-visible { display: inline-block !important; height: 64px; max-width: 180px; max-height: 180px; }
+  .client-logo.is-visible { display: inline-block !important; height: 192px; max-width: 540px; max-height: 540px; }
+  .doc-kv > div:has(.client-logo.is-visible) { grid-column: 1 / -1; }
   .doc-signatures { page-break-inside: avoid; }
+  .sig-space { height: 88px; }
+  .sig-line { width: 100%; border-bottom: 1.5px solid #0a1e32; }
 }
 
 /* File input */

@@ -2,7 +2,7 @@
 
 ## Versão 3.0 Corporativa
 
-[![Version](https://img.shields.io/badge/version-3.0.1-0f2a44.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.0.2-0f2a44.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PDF](https://img.shields.io/badge/PDF-html2pdf-0e7a5a.svg)](#-download-em-pdf-corporativo)
 [![Status](https://img.shields.io/badge/status-corporativo-0f2a44.svg)](#)
@@ -61,7 +61,7 @@ Empresa: **Grupo Performance Ocupacional** — Saúde e Segurança Ocupacional.
 2. **Itens (2/4)** — adicione linhas, qtd e valor unit.; desconto % aplicado ao final.
 3. **Pagamento (3/4)** — forma (À vista, Cartão, PIX, Faturamento + dias) e prazo de entrega.
 4. **Revisar (4/4)** — resumo de 4 campos + callout de segurança. Clique em **`Carregar & Preview`** (topo ou no card). O painel à direita (desktop) ou abaixo (mobile) revela o documento A4.
-5. **`Baixar PDF`** — botão esverdeado habilitado após o preview. Gera e baixa o PDF nomeado. O documento inclui a **logo do cliente** (64 px, máx. 180 px) e **duas linhas de assinatura** (Responsável pela Proposta / Cliente).
+5. **`Baixar PDF`** — botão esverdeado habilitado após o preview. Gera e baixa o PDF nomeado. O documento inclui a **logo do cliente** (192 px, máx. 540 px) e **duas linhas de assinatura** tradicionais (Performance Ocupacional / empresa do cliente).
 
 > **Atalhos:** `Salvar` persiste em localStorage. `Carregar & Preview` tenta carregar o rascunho v3 (fallback v1) **e** revela o preview. `Limpar` remove o rascunho (confirmação).
 
@@ -149,4 +149,4 @@ MIT — veja `LICENSE`.
 **Filipe Goulart** — Gerador de Propostas  
 **Grupo Performance Ocupacional** — Itaguara/MG & Itatiaiuçu/MG
 
-*Última atualização: 19/08/2026 — v3.0.1 Corporativa*
+*Última atualização: 19/08/2026 — v3.0.2 Corporativa*
