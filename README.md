@@ -1,308 +1,152 @@
-# 🚀 Gerador de Proposta Comercial
+# 🚀 Gerador de Proposta Comercial — Grupo Performance Ocupacional
 
-## Grupo Performance Ocupacional — Versão 2.1
+## Versão 3.0 Corporativa
 
+[![Version](https://img.shields.io/badge/version-3.0.0-0f2a44.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.1.0-green.svg)](CHANGELOG.md)
+[![PDF](https://img.shields.io/badge/PDF-html2pdf-0e7a5a.svg)](#-download-em-pdf-corporativo)
+[![Status](https://img.shields.io/badge/status-corporativo-0f2a44.svg)](#)
+
+> Sistema web corporativo para geração de propostas comerciais. Fluxo controlado em 4 etapas, **preview liberado apenas ao final** via botão **Carregar & Preview** e **download direto em PDF** (sem impressão do navegador).
 
 ---
 
-## 📖 Sobre o Projeto
+## 📖 Sobre
 
-Sistema web para geração de propostas comerciais do **Grupo Performance Ocupacional**, especializado em saúde e segurança ocupacional. A aplicação permite criar, visualizar, salvar e imprimir propostas profissionais de forma rápida e eficiente.
+O Gerador 3.0 Corporativo substitui o fluxo livre da v2.1 por um **fluxo governado**:
 
-### 🔗 Demo Online
+- **Preview bloqueado até a Revisão**: evita impressão de rascunhos incompletos e garante consistência visual.
+- **Baixar PDF** no lugar de **Imprimir**: arquivo nomeado `Proposta-{Cliente}-{Nº}.pdf`, formato A4, pronto para envio ao cliente.
+- **Identidade corporativa**: paleta navy `#0f2a44`, tipografia Inter, barra de status, número de documento e selo “CORPORATIVO”.
 
-[Acesse aqui](#) *(inserir link quando disponível)*
+Empresa: **Grupo Performance Ocupacional** — Saúde e Segurança Ocupacional.
 
----
-
-## ✨ Funcionalidades
-
-- ✅ **Wizard Intuitivo**: Interface passo-a-passo em 4 etapas
-  1. Informações do Cliente
-  2. Itens da Proposta
-  3. Pagamento & Entrega
-  4. Revisão Final
-
-- ✅ **Preview em Tempo Real**: Visualização instantânea da proposta
-- ✅ **Salvamento Local**: Rascunhos salvos no navegador (localStorage)
-- ✅ **Cálculos Automáticos**: Subtotais, descontos e totais calculados automaticamente
-- ✅ **Upload de Logo**: Possibilidade de adicionar logo do cliente
-- ✅ **Impressão Profissional**: Layout otimizado para impressão em PDF ou papel
-- ✅ **Design Responsivo**: Funciona em desktops, tablets e celulares
-- ✅ **Validação de Campos**: Campos obrigatórios e validação de email/telefone
-- ✅ **Notificações**: Feedback visual para ações do usuário
+| Unidade | Foco | CNPJ |
+|---------|------|------|
+| Filial Itaguara/MG | Documentação e Treinamentos | 27.708.974/0001-80 |
+| Matriz Itatiaiuçu/MG | Exames Médicos Ocupacionais | 13.583.116/0001-42 |
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## ✨ O que mudou da v2.1 → v3.0
 
-- **HTML5** - Estrutura semântica
-- **CSS3** - Estilização moderna com variáveis CSS
-- **JavaScript (ES6+)** - Lógica e interatividade
-- **Font Awesome 6** - Ícones
-- **Google Fonts (Inter)** - Tipografia
+| Antes (2.1) | Agora (3.0 Corporativo) |
+|-------------|-------------------------|
+| Preview visível o tempo todo, atualizado por “Visualizar” | Preview **oculto** com estado vazio corporativo; só aparece em **Etapa 4 → Carregar & Preview** (topo ou card de Revisão) |
+| Botões `Visualizar` + `Imprimir` (window.print + reload) | Botão único **`Carregar & Preview`** (valida + renderiza) e **`Baixar PDF`** (html2pdf.js, sem reload, sem perda de dados) |
+| LocalStorage `performance_proposal_draft_v1` | `performance_proposal_draft_v3` com `meta.version=3.0` e `docNumber` (`PROP-YYYY-MMDD-###`) |
+| Paleta clara azul/verde genérica | Paleta corporativa navy + off-white + verde corporativo, barra de status, selos e divisores profissionais |
+| Sem número de proposta | Número automático no header, na barra de status e no nome do PDF |
+| Upload de logo sem validação | Validação MIME + limite 2 MB + feedback de nome/tamanho |
 
----
+### Análise de melhorias (resumo técnico)
 
-## 📋 Pré-requisitos
+**Problemas da v2.1 corrigidos:**
+- `window.print()` com `innerHTML` + `reload` perdia estado não salvo → trocado por `html2pdf` com canvasA4, sem reload.
+- Preview “vivo” gerava PDFs incompletos → fluxo controlado com `previewUnlocked` flag e validação de obrigatórios + itens.
+- Sem paginação A4 confiável → `html2pdf` com `margin 8mm`, `scale:2`, `pagebreak: css/legacy`.
+- Logo do Drive + CDN sem fallback → logo local `src/assets/Logotipo.png` + validação de upload.
+- JS monolítico sem estados → separação lógica: `buildPreview()` puro, `revealPreview()` governado, `updateTotals()` reativo.
 
-- Navegador moderno (Chrome, Firefox, Edge, Safari)
-- JavaScript habilitado
-- Conexão com internet (para carregar fontes e ícones via CDN)
-
----
-
-## 🚀 Instalação e Uso
-
-### Opção 1: Abrir Localmente
-
-1. Clone ou baixe este repositório:
-```bash
-git clone https://github.com/seu-usuario/gerador-proposta-performance.git
-cd gerador-proposta-performance
-```
-
-2. Abra o arquivo `index.html` diretamente no seu navegador:
-```bash
-# No Windows, basta dar dois cliques no arquivo
-# Ou use um servidor local:
-python -m http.server 8000
-# Acesse: http://localhost:8000
-```
-
-### Opção 2: Usar Servidor de Desenvolvimento
-
-```bash
-# Com Python 3
-python -m http.server 8000
-
-# Com Node.js (npx)
-npx serve .
-
-# Com PHP
-php -S localhost:8000
-```
+**Ganhos corporativos:**
+- Consistência: o comercial só consegue exportar após preencher Cliente/Itens/Pagamento.
+- Rastreabilidade: `docNumber` por proposta, exibido no PDF e no nome do arquivo.
+- UX: progresso 25%/50%/75%/100%, notificações toast, contador de observações, validação inline.
 
 ---
 
-## 📖 Como Usar
+## 🧭 Fluxo de uso (3.0)
 
-### Passo 1: Informações do Cliente
-Preencha os dados da empresa cliente:
-- Razão social / Nome fantasia
-- Unidade/Contrato
-- Responsável e telefone
-- Email, CNPJ/CPF, endereço
-- Observações (opcional)
-- Logo do cliente (opcional)
+1. **Cliente (1/4)** — preencha Empresa, Unidade, Responsável, Telefone (*). CNPJ, endereço, logo (opcional, 2 MB).
+2. **Itens (2/4)** — adicione linhas, qtd e valor unit.; desconto % aplicado ao final.
+3. **Pagamento (3/4)** — forma (À vista, Cartão, PIX, Faturamento + dias) e prazo de entrega.
+4. **Revisar (4/4)** — resumo de 4 campos + callout de segurança. Clique em **`Carregar & Preview`** (topo ou no card). O painel à direita (desktop) ou abaixo (mobile) revela o documento A4.
+5. **`Baixar PDF`** — botão esverdeado habilitado após o preview. Gera e baixa o PDF nomeado.
 
-### Passo 2: Itens da Proposta
-Adicione os serviços/produtos:
-- Clique em "Adicionar item"
-- Preencha descrição, quantidade e valor unitário
-- O subtotal é calculado automaticamente
-- Aplique desconto percentual se necessário
-
-### Passo 3: Pagamento & Entrega
-Configure as condições:
-- Forma de pagamento (À vista, Cartão, PIX, Faturamento)
-- Dias combinados (para faturamento)
-- Estimativa de entrega
-
-### Passo 4: Revisar & Gerar
-- Revise todas as informações no preview à direita
-- Use os botões de navegação para corrigir se necessário
-- Clique em **"Visualizar"** para atualizar o preview
-- Clique em **"Imprimir"** para gerar a proposta final
-
-### Salvando Rascunhos
-- **Salvar**: Guarda os dados no localStorage do navegador
-- **Carregar**: Recupera rascunho salvo anteriormente
-- **Limpar**: Remove rascunho salvo
+> **Atalhos:** `Salvar` persiste em localStorage. `Carregar & Preview` tenta carregar o rascunho v3 (fallback v1) **e** revela o preview. `Limpar` remove o rascunho (confirmação).
 
 ---
 
-## 📁 Estrutura do Projeto
+## 🛠️ Tecnologias
+
+- HTML5 semântico, CSS3 (variáveis corporativas), JavaScript ES6+ vanilla
+- **html2pdf.js 0.10.1** (html2canvas + jsPDF) via CDN para exportação PDF
+- Font Awesome 6.5, Google Fonts Inter
+- LocalStorage (sem backend), PWA manifest
+
+---
+
+## 📁 Estrutura
 
 ```
-gerador-proposta-performance/
-├── index.html              # Página principal
-├── README.md               # Esta documentação
-├── LICENSE                 # Licença de uso
-├── CHANGELOG.md            # Histórico de versões
-├── CONTRIBUTING.md         # Guia de contribuição
-├── PLANO_MELHORIAS.md      # Plano de melhorias futuras
-├── GUIA_USO.md             # Guia de uso completo
-├── AVALIACAO_PROFISSIONAL.md
-├── CHECKLIST_IMPLANTACAO.md
-├── INDICE_DOCUMENTACAO.md
+gerador-proposta/
+├── index.html              # v3.0 corporativo (preview controlado + Baixar PDF)
+├── src/
+│   ├── css/style.css       # tema navy corporativo
+│   ├── js/script.js        # lógica 3.0 (previewUnlocked, html2pdf, validação)
+│   ├── assets/             # logos e favicons
+│   └── manifest.json       # PWA 3.0
+├── README.md               # este arquivo
+├── CHANGELOG.md
+├── GUIA_USO.md             # guia 3.0
 ├── PRIVACIDADE_SEGURANCA.md
-└── src/
-    ├── manifest.json       # Manifesto PWA
-    ├── css/
-    │   └── style.css       # Folha de estilos
-    ├── js/
-    │   └── script.js       # Lógica da aplicação
-    ├── assets/
-    │   ├── Logotipo.png    # Logo da empresa
-    │   ├── Logo1.png       # Logo alternativa
-    │   ├── favicon.ico     # Favicon principal
-    │   ├── favicon-16x16.png
-    │   ├── favicon-32x32.png
-    │   ├── favicon-192x192.png
-    │   ├── favicon-512x512.png
-    │   └── apple-touch-icon.png
-    └── components/         # Componentes (futuro)
+└── LICENSE
 ```
 
 ---
 
-## 🔧 Personalização
+## 🚀 Instalação
 
-### Alterar Cores
-Edite as variáveis CSS em `src/css/style.css`:
+```bash
+git clone <repo>
+cd gerador_propostas
+python -m http.server 8000
+# http://localhost:8000
+```
 
+Sem build. Abra `index.html` direto se preferir (CDNs requerem internet).
+
+---
+
+## 🎨 Personalização
+
+**Cores** em `src/css/style.css` (`:root`):
 ```css
-:root {
-  --primary: #3b82f6;        /* Cor primária */
-  --primary-dark: #2563eb;   /* Primária escura */
-  --accent: #10b981;         /* Cor de destaque */
-  --accent-dark: #059669;    /* Destaque escuro */
-}
+--primary: #0f2a44; --accent: #0e7a5a; --primary-light: #e9eef6;
 ```
 
-### Alterar Logo
-Substitua a URL da logo em `index.html`:
-```html
-<img id="brandLogo" src="src/assets/URL_DA_SUA_LOGO" alt="Performance" />
-```
+**Faturamento** em `index.html` → `.billing-info` (dois blocos CNPJ).
 
-### Alterar Informações de Faturamento
-Edite a seção em `index.html` (linhas ~307-323):
-```html
-<div class="billing-info">
-  <!-- Suas informações aqui -->
-</div>
-```
+**Logo** → `src/assets/Logotipo.png` (docHeader e #brandLogo).
 
 ---
 
-## 🐛 Solução de Problemas
+## 🔒 Privacidade
 
-### O rascunho não salva
-- Verifique se o localStorage está habilitado no navegador
-- Limpe o cache e cookies
-- Tente usar outro navegador
-
-### A impressão não funciona corretamente
-- Certifique-se de ter clicado em "Visualizar" antes
-- Verifique se todos os campos obrigatórios estão preenchidos
-- Tente usar a opção "Salvar como PDF" da impressora
-
-### Os ícones não aparecem
-- Verifique sua conexão com a internet (Font Awesome via CDN)
-- Ad-blockers podem bloquear recursos externos
+100% local: dados ficam em `localStorage` no navegador. Sem envio a servidores. Limite ~5 MB, apagado ao limpar cache. Logo é convertida em DataURL (não enviada). Veja `PRIVACIDADE_SEGURANCA.md`.
 
 ---
 
-## 📱 Compatibilidade
+## 🐛 Solução de problemas
 
-| Navegador | Versão Mínima | Status |
-|-----------|---------------|--------|
-| Chrome | 80+ | ✅ Testado |
-| Firefox | 75+ | ✅ Testado |
-| Edge | 80+ | ✅ Testado |
-| Safari | 13+ | ✅ Testado |
-| Opera | 65+ | ✅ Testado |
-
----
-
-## 🔒 Segurança e Privacidade
-
-- **Dados Locais**: Todas as informações são salvas apenas no seu navegador (localStorage)
-- **Sem Backend**: Não há envio de dados para servidores externos
-- **HTTPS Recomendado**: Ao hospedar, use HTTPS para proteger os dados
-- **Limpeza Regular**: Recomenda-se limpar rascunhos antigos periodicamente
-
-### Limitações do localStorage
-- Máximo de ~5MB por domínio
-- Dados persistem apenas no navegador/dispositivo atual
-- São apagados ao limpar cache/cookies do navegador
-
----
-
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Veja o guia em [CONTRIBUTING.md](CONTRIBUTING.md).
-
-### Passos Básicos:
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
+| Sintoma | Causa | Solução |
+|---------|-------|---------|
+| “Preencha campos obrigatórios” ao clicar Carregar | Faltam Empresa/Unidade/Responsável/Telefone ou nenhum item | Preencha passos 1–3 |
+| Baixar PDF desabilitado | Preview ainda bloqueado | Vá em Revisar → Carregar & Preview |
+| PDF em branco | html2pdf bloqueado por ad-block | Desative bloqueador, mantenha internet |
+| Logo não aparece | Arquivo >2 MB ou formato inválido | Use PNG/JPG ≤2 MB |
 
 ---
 
 ## 📄 Licença
 
-Este projeto está licenciado sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
-
-Resumo: Você pode usar, modificar e distribuir livremente, desde que mantenha os créditos originais.
+MIT — veja `LICENSE`.
 
 ---
 
-## 👨‍💻 Autor
+## 👨‍💻 Autor • Empresa
 
-**Filipe Goulart**  
-Desenvolvedor do Gerador de Propostas
+**Filipe Goulart** — Gerador de Propostas  
+**Grupo Performance Ocupacional** — Itaguara/MG & Itatiaiuçu/MG
 
----
-
-## 🏢 Empresa
-
-**Grupo Performance Ocupacional**  
-Saúde e Segurança Ocupacional
-
-### Unidades:
-- **Filial Itaguara/MG** - Documentação e Treinamentos
-  - CNPJ: 27.708.974/0001-80
-  
-- **Matriz Itatiaiuçu/MG** - Exames Médicos Ocupacionais
-  - CNPJ: 13.583.116/0001-42
-
----
-
-## 📞 Contato
-
-- **Website**: [inserir]
-- **Email**: [inserir]
-- **Telefone**: [inserir]
-
----
-
-## 🙏 Agradecimentos
-
-- Google Fonts pela tipografia Inter
-- Font Awesome pelos ícones
-- Comunidade open-source pelas ferramentas utilizadas
-
----
-
-## 📈 Roadmap
-
-Veja as melhorias planejadas em [PLANO_MELHORIAS.md](PLANO_MELHORIAS.md)
-
-### Próximas Versões
-- [ ] Exportação para PDF
-- [ ] Envio por email
-- [ ] Histórico de propostas
-- [ ] Templates personalizáveis
-- [ ] Assinatura digital
-
----
-
-*Última atualização: Agosto 2025*  
-*Versão: 2.1.0*
+*Última atualização: 19/08/2026 — v3.0.0 Corporativa*
