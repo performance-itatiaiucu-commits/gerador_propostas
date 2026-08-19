@@ -4,31 +4,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- SEO Meta Tags -->
-  <title>Gerador de Proposta V 2.1 — Grupo Performance Ocupacional</title>
-  <meta name="title" content="Gerador de Proposta Comercial - Grupo Performance Ocupacional">
-  <meta name="description" content="Sistema web para geração de propostas comerciais de saúde e segurança ocupacional. Crie, visualize e imprima propostas profissionais de forma rápida e eficiente.">
-  <meta name="keywords" content="proposta comercial, saúde ocupacional, segurança do trabalho, gerador de propostas, performance ocupacional">
-  <meta name="author" content="Filipe Goulart">
+
+  <!-- SEO -->
+  <title>Gerador de Proposta V 3.0 Corporativo — Grupo Performance Ocupacional</title>
+  <meta name="title" content="Gerador de Proposta Corporativo 3.0 - Grupo Performance Ocupacional">
+  <meta name="description" content="Gerador de Propostas Corporativo 3.0 — Sistema profissional para criação, preview controlado e download em PDF de propostas comerciais de saúde e segurança ocupacional.">
+  <meta name="keywords" content="proposta comercial, saúde ocupacional, segurança do trabalho, gerador de propostas, performance ocupacional, corporativo, PDF">
+  <meta name="author" content="Grupo Performance Ocupacional — Filipe Goulart">
   <meta name="robots" content="index, follow">
   <meta name="language" content="pt-BR">
-  
-  <!-- Open Graph / Facebook -->
+  <meta name="theme-color" content="#0f2a44">
+
+  <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://performanceocupacional.com.br/">
-  <meta property="og:title" content="Gerador de Proposta - Performance Ocupacional">
-  <meta property="og:description" content="Sistema de geração de propostas comerciais para saúde e segurança ocupacional">
-  <meta property="og:image" content="Logotipo.png">
+  <meta property="og:title" content="Gerador de Proposta 3.0 Corporativo - Performance Ocupacional">
+  <meta property="og:description" content="Gere propostas comerciais profissionais com preview controlado e download em PDF.">
+  <meta property="og:image" content="src/assets/Logotipo.png">
   <meta property="og:locale" content="pt_BR">
-  
-  <!-- Twitter Card -->
+
+  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://performanceocupacional.com.br/">
-  <meta name="twitter:title" content="Gerador de Proposta - Performance Ocupacional">
-  <meta name="twitter:description" content="Sistema de geração de propostas comerciais para saúde e segurança ocupacional">
-  <meta name="twitter:image" content="Logotipo.png">
-  
+  <meta name="twitter:title" content="Gerador de Proposta 3.0 Corporativo - Performance Ocupacional">
+  <meta name="twitter:description" content="Sistema corporativo de geração de propostas com exportação em PDF.">
+
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="src/assets/favicon.ico">
   <link rel="icon" type="image/png" sizes="16x16" href="src/assets/favicon-16x16.png">
@@ -36,116 +35,140 @@
   <link rel="icon" type="image/png" sizes="192x192" href="src/assets/favicon-192x192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="src/assets/favicon-512x512.png">
   <link rel="apple-touch-icon" href="src/assets/apple-touch-icon.png">
-  
-  <!-- Manifesto PWA (opcional para futuro) -->
   <link rel="manifest" href="src/manifest.json">
-  
+
   <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="src/css/style.css">
+
+  <!-- PDF engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
   <div class="app-container">
+    <!-- Topbar Corporativo -->
     <header class="topbar">
       <div class="top-left">
         <img id="brandLogo" src="src/assets/Logotipo.png" alt="Performance Ocupacional" />
         <div class="brand-text">
-          <div class="brand-title">Gerador de Proposta <span class="version-badge">V 2.1</span></div>
-          <div class="brand-sub">Grupo Performance Ocupacional</div>
+          <div class="brand-title">Gerador de Proposta <span class="version-badge">V 3.0</span> <span class="corp-badge">CORPORATIVO</span></div>
+          <div class="brand-sub">Grupo Performance Ocupacional • Saúde e Segurança Ocupacional</div>
         </div>
       </div>
 
       <div class="top-actions">
-        <button id="saveDraft" class="btn ghost"><i class="fa-regular fa-floppy-disk"></i> Salvar</button>
-        <button id="loadDraft" class="btn ghost"><i class="fa-solid fa-folder-open"></i> Carregar</button>
-        <button id="clearDraft" class="btn ghost"><i class="fa-solid fa-trash"></i> Limpar</button>
-        <button id="generatePreview" class="btn primary"><i class="fa-solid fa-eye"></i> Visualizar</button>
-        <button id="printBtn" class="btn accent"><i class="fa-solid fa-print"></i> Imprimir</button>
+        <button id="saveDraft" class="btn ghost" title="Salvar rascunho localmente"><i class="fa-regular fa-floppy-disk"></i> Salvar</button>
+        <button id="loadDraft" class="btn primary" title="Carregar dados e exibir preview final"><i class="fa-solid fa-eye"></i> Carregar &amp; Preview</button>
+        <button id="clearDraft" class="btn ghost" title="Limpar rascunho"><i class="fa-solid fa-trash-can"></i> Limpar</button>
+        <button id="downloadBtn" class="btn accent" disabled title="Gera o PDF da proposta (disponível após carregar o preview)"><i class="fa-solid fa-file-arrow-down"></i> Baixar PDF</button>
       </div>
     </header>
 
+    <!-- Sub-header corporativo com status -->
+    <div class="corp-statusbar">
+      <div class="status-left">
+        <span class="status-dot"></span>
+        <span>Fluxo controlado</span>
+        <span class="sep">•</span>
+        <span class="muted">Preencha as etapas 1–3 e use <strong>Carregar &amp; Preview</strong> na Revisão para liberar o documento.</span>
+      </div>
+      <div class="status-right small">
+        <span id="proposalDateLabel">Data: <strong id="proposalDate"></strong></span>
+        <span class="sep">|</span>
+        <span>Validade: <strong>30 dias</strong></span>
+        <span class="sep">|</span>
+        <span>Doc: <strong id="docNumberLabel">—</strong></span>
+      </div>
+    </div>
+
     <main class="container">
-      <div class="layout">
-        <!-- Form (wizard style left) -->
+      <div class="layout" id="layout">
+        <!-- Form -->
         <aside class="form-column">
-          <nav class="wizard">
-            <button class="wizard-step active" data-step="1"><i class="fa-solid fa-user"></i> Cliente</button>
-            <button class="wizard-step" data-step="2"><i class="fa-solid fa-list"></i> Itens</button>
-            <button class="wizard-step" data-step="3"><i class="fa-solid fa-credit-card"></i> Pagamento</button>
-            <button class="wizard-step" data-step="4"><i class="fa-solid fa-eye"></i> Revisar</button>
+          <nav class="wizard" role="tablist" aria-label="Etapas da proposta">
+            <button class="wizard-step active" data-step="1" role="tab" aria-selected="true"><span class="step-num">1</span> Cliente</button>
+            <button class="wizard-step" data-step="2" role="tab" aria-selected="false"><span class="step-num">2</span> Itens</button>
+            <button class="wizard-step" data-step="3" role="tab" aria-selected="false"><span class="step-num">3</span> Pagamento</button>
+            <button class="wizard-step" data-step="4" role="tab" aria-selected="false"><span class="step-num">4</span> Revisar</button>
           </nav>
 
+          <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill" style="width:25%"></div></div>
+
           <form id="proposalForm" class="form-cards" novalidate>
-            <!-- Step 1 - Cliente -->
+            <!-- Step 1 -->
             <section class="card step" data-step="1">
-              <h3><i class="fa-solid fa-user"></i> Informações do Cliente</h3>
+              <div class="card-head">
+                <h3><i class="fa-solid fa-building"></i> Informações do Cliente</h3>
+                <span class="card-badge">Obrigatório</span>
+              </div>
+              <p class="card-desc">Dados que aparecerão no cabeçalho da proposta. Campos com * são obrigatórios.</p>
 
               <div class="form-group">
-                <label>Empresa *</label>
-                <input id="company" type="text" placeholder="Razão social / Nome fantasia" required>
+                <label for="company">Empresa *</label>
+                <input id="company" type="text" placeholder="Razão social / Nome fantasia" required autocomplete="organization">
               </div>
 
               <div class="form-group">
-                <label>Unidade *</label>
-                <input id="contractType" type="text" placeholder="Matriz / Contrato" required>
+                <label for="contractType">Unidade / Contrato *</label>
+                <input id="contractType" type="text" placeholder="Matriz / Contrato nº" required>
               </div>
 
               <div class="row">
                 <div class="form-group">
-                  <label>Responsável *</label>
+                  <label for="responsible">Responsável *</label>
                   <input id="responsible" type="text" placeholder="Nome do responsável" required>
                 </div>
                 <div class="form-group">
-                  <label>Telefone *</label>
+                  <label for="phone">Telefone *</label>
                   <input id="phone" type="tel" placeholder="(XX) XXXXX-XXXX" required>
                 </div>
               </div>
 
               <div class="form-group">
-                <label>Email</label>
-                <input id="email" type="email" placeholder="contato@empresa.com">
+                <label for="email">E-mail</label>
+                <input id="email" type="email" placeholder="contato@empresa.com" autocomplete="email">
               </div>
 
               <div class="form-group">
-                <label>CNPJ/CPF</label>
-                <input id="taxId" type="text" placeholder="00.000.000/0000-00">
+                <label for="taxId">CNPJ / CPF</label>
+                <input id="taxId" type="text" placeholder="00.000.000/0000-00" inputmode="numeric">
               </div>
 
               <div class="form-group">
-                <label>Endereço</label>
+                <label for="address">Endereço</label>
                 <input id="address" type="text" placeholder="Endereço completo">
               </div>
 
               <div class="row">
                 <div class="form-group">
-                  <label>Cidade</label>
+                  <label for="city">Cidade</label>
                   <input id="city" type="text" placeholder="Cidade">
                 </div>
                 <div class="form-group">
-                  <label>UF</label>
+                  <label for="state">UF</label>
                   <input id="state" type="text" placeholder="UF" maxlength="2" style="text-transform:uppercase">
                 </div>
               </div>
 
               <div class="form-group">
-                <label>Observações</label>
-                <textarea id="notes" maxlength="500" placeholder="Observações sobre negociação (máx 500)"></textarea>
+                <label for="notes">Observações (uso interno, máx. 500)</label>
+                <textarea id="notes" maxlength="500" placeholder="Observações sobre negociação. Não aparece no PDF final, apenas para controle interno."></textarea>
+                <div class="small muted" style="text-align:right"><span id="notesCount">0</span>/500</div>
               </div>
 
               <div class="form-group">
-                <label>Logo do cliente (opcional)</label>
+                <label for="clientLogo">Logo do cliente (opcional, PNG/JPG até 2MB)</label>
                 <div class="file-input-container">
-                  <div class="file-input-label">
+                  <div class="file-input-label" id="fileLabel">
                     <i class="fa-solid fa-upload"></i>
                     <span id="fileLabelText">Selecionar arquivo</span>
                   </div>
-                  <input id="clientLogo" type="file" accept="image/*">
+                  <input id="clientLogo" type="file" accept="image/png,image/jpeg,image/webp">
                 </div>
+                <div id="fileHint" class="small muted" style="margin-top:6px"></div>
               </div>
-
-              <div class="card-footer small">Data da proposta: <strong id="proposalDate"></strong></div>
 
               <div class="step-navigation">
                 <div></div>
@@ -153,35 +176,41 @@
               </div>
             </section>
 
-            <!-- Step 2 - Itens -->
+            <!-- Step 2 -->
             <section class="card step" data-step="2" style="display:none;">
-              <h3><i class="fa-solid fa-list"></i> Itens da Proposta</h3>
+              <div class="card-head">
+                <h3><i class="fa-solid fa-list-check"></i> Itens da Proposta</h3>
+                <span class="card-badge neutral">Cálculo automático</span>
+              </div>
+              <p class="card-desc">Adicione serviços, quantidades e valores. O total é recalculado automaticamente.</p>
 
               <div class="items-area">
-                <table class="items-table">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Descrição</th>
-                      <th>Qtd</th>
-                      <th>Valor unit.</th>
-                      <th>Subtotal</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody id="itemsBody"></tbody>
-                </table>
+                <div class="table-wrap">
+                  <table class="items-table">
+                    <thead>
+                      <tr>
+                        <th style="width:40px">#</th>
+                        <th>Descrição</th>
+                        <th style="width:110px">Qtd</th>
+                        <th style="width:150px">Valor unit.</th>
+                        <th style="width:130px">Subtotal</th>
+                        <th style="width:50px"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="itemsBody"></tbody>
+                  </table>
+                </div>
 
                 <div class="items-controls">
                   <button type="button" id="addItem" class="btn ghost"><i class="fa-solid fa-plus"></i> Adicionar item</button>
                   <div class="inline">
-                    <label class="small">Desconto (%)</label>
-                    <input id="discount" type="number" min="0" max="100" value="0" style="width:100px">
+                    <label class="small" for="discount">Desconto (%)</label>
+                    <input id="discount" type="number" min="0" max="100" value="0" style="width:110px">
                   </div>
                 </div>
               </div>
 
-              <div class="card-footer small">Total: <strong>R$ <span id="totalDisplay">0,00</span></strong></div>
+              <div class="card-footer total-footer">Total estimado: <strong>R$ <span id="totalDisplay">0,00</span></strong></div>
 
               <div class="step-navigation">
                 <button type="button" class="btn ghost prev-step" data-prev="1"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
@@ -189,12 +218,15 @@
               </div>
             </section>
 
-            <!-- Step 3 - Pagamento -->
+            <!-- Step 3 -->
             <section class="card step" data-step="3" style="display:none;">
-              <h3><i class="fa-solid fa-credit-card"></i> Pagamento & Entrega</h3>
+              <div class="card-head">
+                <h3><i class="fa-solid fa-credit-card"></i> Pagamento &amp; Entrega</h3>
+                <span class="card-badge neutral">Condições comerciais</span>
+              </div>
 
               <div class="form-group">
-                <label>Forma de pagamento</label>
+                <label for="paymentMethod">Forma de pagamento</label>
                 <select id="paymentMethod">
                   <option>À vista</option>
                   <option>Cartão de Crédito</option>
@@ -205,32 +237,54 @@
 
               <div id="billingDays" style="display:none">
                 <div class="form-group">
-                  <label>Dias combinados</label>
+                  <label for="billingDaysInput">Dias combinados (faturamento)</label>
                   <input id="billingDaysInput" type="text" placeholder="Ex.: 30 dias">
                 </div>
               </div>
 
               <div class="form-group">
-                <label>Estimativa de entrega</label>
+                <label for="leadTime">Estimativa de entrega</label>
                 <input id="leadTime" type="text" placeholder="Ex.: 15 dias úteis">
               </div>
 
-              <div class="card-footer small">Validade da proposta: <strong>30 dias</strong></div>
+              <div class="muted-box">
+                <i class="fa-solid fa-circle-info"></i>
+                <div>
+                  <strong>Validade padrão: 30 dias.</strong><br>
+                  Condições aparecerão de forma destacada no PDF final.
+                </div>
+              </div>
 
               <div class="step-navigation">
                 <button type="button" class="btn ghost prev-step" data-prev="2"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
-                <button type="button" class="btn primary next-step" data-next="4">Próximo <i class="fa-solid fa-arrow-right"></i></button>
+                <button type="button" class="btn primary next-step" data-next="4">Revisar <i class="fa-solid fa-arrow-right"></i></button>
               </div>
             </section>
 
-            <!-- Step 4 - Revisar -->
+            <!-- Step 4 -->
             <section class="card step" data-step="4" style="display:none;">
-              <h3><i class="fa-solid fa-eye"></i> Revisar & Gerar</h3>
+              <div class="card-head">
+                <h3><i class="fa-solid fa-file-shield"></i> Revisar &amp; Gerar</h3>
+                <span class="card-badge">Final</span>
+              </div>
 
-              <p class="small">Revise as informações e clique em <strong>Visualizar</strong> para ver o layout da proposta à direita. Em seguida, clique em <strong>Imprimir</strong> para gerar a proposta.</p>
+              <div class="review-grid">
+                <div class="review-item"><span class="rk">Empresa</span><span id="review_company" class="rv">—</span></div>
+                <div class="review-item"><span class="rk">Responsável</span><span id="review_contact" class="rv">—</span></div>
+                <div class="review-item"><span class="rk">Contrato</span><span id="review_contract" class="rv">—</span></div>
+                <div class="review-item"><span class="rk">Total</span><span id="review_total" class="rv strong">R$ 0,00</span></div>
+              </div>
 
-              <div class="muted-box">
-                <p><strong>Atenção:</strong> Use o botão <em>Salvar</em> para salvar localmente.</p>
+              <div class="corporate-callout">
+                <div class="callout-icon"><i class="fa-solid fa-lock"></i></div>
+                <div>
+                  <strong>Preview controlado.</strong> O documento só é renderizado quando você clica em <strong>Carregar &amp; Preview</strong>. Isso garante consistência corporativa e evita impressão de rascunhos incompletos. Após o preview, o botão <strong>Baixar PDF</strong> é liberado.
+                </div>
+              </div>
+
+              <div class="review-actions">
+                <button type="button" id="triggerPreview" class="btn primary" style="width:100%;justify-content:center;padding:16px;font-size:1rem"><i class="fa-solid fa-eye"></i> Carregar &amp; Exibir Preview</button>
+                <p class="small muted" style="text-align:center;margin-top:10px">O preview aparecerá ao lado (desktop) ou abaixo (mobile). Depois, use <strong>Baixar PDF</strong> no topo.</p>
               </div>
 
               <div class="step-navigation">
@@ -241,43 +295,66 @@
           </form>
         </aside>
 
-        <!-- Preview (right) -->
-        <section class="preview-column">
-          <div class="preview-sticky">
-            <div class="preview-card" id="previewCard" role="document" aria-live="polite">
+        <!-- Preview Column - oculto até Carregar -->
+        <section class="preview-column" id="previewColumn" aria-live="polite">
+          <!-- Estado vazio corporativo -->
+          <div id="previewEmpty" class="preview-empty">
+            <div class="empty-icon"><i class="fa-solid fa-file-lines"></i></div>
+            <h4>Preview bloqueado</h4>
+            <p>O documento corporativo só é exibido ao final do fluxo.<br>Conclua as etapas e clique em <strong>Carregar &amp; Preview</strong>.</p>
+            <ul class="empty-steps">
+              <li><i class="fa-solid fa-check"></i> Preencha Cliente, Itens e Pagamento</li>
+              <li><i class="fa-solid fa-check"></i> Vá até <strong>Revisar</strong> (etapa 4)</li>
+              <li><i class="fa-solid fa-check"></i> Clique em <strong>Carregar &amp; Preview</strong></li>
+            </ul>
+            <div class="empty-hint"><i class="fa-solid fa-shield-halved"></i> Padrão 3.0 • evita impressão de dados incompletos</div>
+          </div>
+
+          <!-- Documento real -->
+          <div class="preview-sticky" id="previewSticky" style="display:none">
+            <div class="preview-toolbar">
+              <span class="toolbar-title"><i class="fa-solid fa-file-pdf"></i> Preview — pronto para PDF</span>
+              <span class="toolbar-badge">A4 • Corporativo</span>
+            </div>
+            <div class="preview-card" id="previewCard" role="document">
               <div class="proposal-doc" id="proposalDoc">
                 <header class="doc-header">
                   <div class="doc-left">
                     <img id="docLogo" src="src/assets/Logotipo.png" alt="Logo Performance" />
-                    <div class="doc-company">Grupo Performance Ocupacional</div>
+                    <div>
+                      <div class="doc-company">Grupo Performance Ocupacional</div>
+                      <div class="doc-sub">Saúde e Segurança Ocupacional • Desde 2012</div>
+                    </div>
                   </div>
                   <div class="doc-right">
                     <div class="doc-title">Proposta Comercial</div>
-                    <div class="doc-meta">Data: <span id="docDate"></span></div>
+                    <div class="doc-meta">Nº <span id="docNumber">—</span> • Data: <span id="docDate"></span></div>
                     <div class="doc-meta">Validade: <span>30 dias</span></div>
                   </div>
                 </header>
+
+                <div class="doc-divider"></div>
 
                 <section class="doc-body">
                   <div class="doc-kv">
                     <div>
                       <div class="kv-key">Empresa</div>
                       <div class="kv-value" id="pd_company_container">
-                        <img id="pd_client_logo" class="client-logo" src="" style="display: none;">
+                        <img id="pd_client_logo" class="client-logo" src="" style="display: none;" alt="Logo cliente">
                         <span id="pd_company">—</span>
                       </div>
                     </div>
                     <div>
                       <div class="kv-key">Contato</div>
-                      <div id="pd_contact">—</div>
+                      <div id="pd_contact" class="kv-val">—</div>
                     </div>
                     <div>
-                      <div class="kv-key">Contrato</div>
-                      <div id="pd_contract">—</div>
+                      <div class="kv-key">Contrato / Unidade</div>
+                      <div id="pd_contract" class="kv-val">—</div>
                     </div>
                     <div>
-                      <div class="kv-key">Email</div>
-                      <div id="pd_email">—</div>
+                      <div class="kv-key">E-mail</div>
+                      <div id="pd_email" class="kv-val">—</div>
                     </div>
                   </div>
 
@@ -303,19 +380,16 @@
                     <div class="doc-total"><span>Total:</span> R$ <span id="pd_total">0,00</span></div>
                   </div>
 
-                  <!-- Informações de Faturamento em Destaque -->
                   <div class="billing-info">
                     <h4><i class="fa-solid fa-file-invoice-dollar"></i> Informações de Faturamento</h4>
-
                     <div class="billing-section">
-                      <h5>Documentação e Treinamentos: Filial Itaguara/MG</h5>
+                      <h5>Documentação e Treinamentos — Filial Itaguara/MG</h5>
                       <p><strong>Razão Social:</strong> ROBSON LUCIANO SIQUEIRA SICA</p>
                       <p><strong>Nome Fantasia:</strong> PERFORMANCE OCUPACIONAL</p>
                       <p><strong>CNPJ:</strong> 27.708.974/0001-80</p>
                     </div>
-
                     <div class="billing-section">
-                      <h5>Exames Médicos Ocupacionais: Matriz Itatiaiuçu/MG</h5>
+                      <h5>Exames Médicos Ocupacionais — Matriz Itatiaiuçu/MG</h5>
                       <p><strong>Razão Social:</strong> PERFORMANCE SAÚDE E SEGURANCA OCUPACIONAL LTDA</p>
                       <p><strong>Nome Fantasia:</strong> PERFORMANCE OCUPACIONAL</p>
                       <p><strong>CNPJ:</strong> 13.583.116/0001-42</p>
@@ -323,26 +397,26 @@
                   </div>
 
                   <div class="doc-accept">
-                    <h4>Aceite da Proposta Comercial</h4>
-                    <p>Para dar início à parceria e garantir a execução dos serviços contratados, é necessário apenas a formalização do aceite desta proposta comercial. Após a confirmação, nossa equipe entrará em contato de forma imediata para alinhar todos os detalhes necessários.</p>
+                    <h4><i class="fa-solid fa-handshake"></i> Aceite da Proposta Comercial</h4>
+                    <p>Para dar início à parceria e garantir a execução dos serviços contratados, é necessária apenas a formalização do aceite desta proposta. Após a confirmação, nossa equipe entrará em contato de forma imediata para alinhar todos os detalhes necessários.</p>
                   </div>
                 </section>
 
                 <footer class="doc-footer">
-                  <div>Licenciado para uso interno</div>
-                  <div>©Grupo Performance Ocupacional</div>
+                  <div>Documento gerado eletronicamente • Uso interno</div>
+                  <div>© Grupo Performance Ocupacional — 2025</div>
                 </footer>
               </div>
             </div>
-
-            <div class="hint small">Preview responsivo — use o botão Imprimir para gerar a proposta.</div>
+            <div class="hint small"><i class="fa-solid fa-circle-info"></i> Conferiu? Clique em <strong>Baixar PDF</strong> no topo para salvar o arquivo com o número da proposta.</div>
           </div>
         </section>
       </div>
     </main>
 
     <footer class="app-footer">
-      Aplicativo Criado por Filipe Goulart — ©Grupo Performance Ocupacional 2025
+      <div><strong>Grupo Performance Ocupacional</strong> — Gerador Corporativo 3.0 • Itaguara/MG (Doc/Treinamentos) • Itatiaiuçu/MG (Exames)</div>
+      <div class="small">Aplicativo criado por Filipe Goulart — Todos os direitos reservados • v3.0.0 • <span id="footerDate"></span></div>
     </footer>
   </div>
 

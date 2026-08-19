@@ -1,226 +1,108 @@
-# 📘 Guia Rápido de Uso
+# 📘 Guia de Uso — Gerador 3.0 Corporativo
 
-## Gerador de Proposta Comercial - Grupo Performance Ocupacional
+## Grupo Performance Ocupacional
 
 ---
 
 ## ⚡ Início Rápido
 
-### 1. Abrir o Sistema
-- **Opção A**: Abra o arquivo `index.html` diretamente no navegador
-- **Opção B**: Use um servidor local (recomendado)
-  ```bash
-  python -m http.server 8000
-  # Acesse: http://localhost:8000
-  ```
+**Abrir:** `index.html` direto ou `python -m http.server 8000` → http://localhost:8000
 
-### 2. Criar Nova Proposta
-Siga as 4 etapas do wizard:
+> Requer internet para CDN (Inter, Font Awesome, html2pdf). Sem internet o app abre, mas PDF e ícones falham.
 
-#### 📋 Etapa 1 - Cliente
-| Campo | Obrigatório | Exemplo |
-|-------|-------------|---------|
+---
+
+## 🧭 Fluxo Corporativo (preview só no final)
+
+O 3.0 bloqueia o preview até a última etapa para garantir proposta completa.
+
+### Etapa 1 — Cliente (1/4)
+| Campo | Obrig. | Exemplo |
+|-------|--------|---------|
 | Empresa | ✅ | ABC Indústria Ltda |
-| Unidade | ✅ | Matriz / Contrato 001 |
+| Unidade / Contrato | ✅ | Matriz / Contrato 001 |
 | Responsável | ✅ | João Silva |
 | Telefone | ✅ | (31) 99999-9999 |
-| Email | ❌ | contato@abc.com.br |
-| CNPJ/CPF | ❌ | 00.000.000/0000-00 |
-| Endereço | ❌ | Rua das Flores, 123 |
-| Cidade/UF | ❌ | Belo Horizonte / MG |
-| Observações | ❌ | Cliente preferencial |
-| Logo | ❌ | Upload de imagem |
+| E-mail | ❌ | contato@abc.com.br |
+| CNPJ/CPF | ❌ | auto-formata |
+| Endereço / Cidade / UF | ❌ | Rua X, 123 / BH / MG |
+| Observações | ❌ | até 500c (contador) |
+| Logo | ❌ | PNG/JPG/WebP até 2 MB |
 
-💡 **Dica**: A formatação do CNPJ/CPF é automática!
+### Etapa 2 — Itens (2/4)
+- **Adicionar item** → Descrição, Qtd, Valor unit. → subtotal auto.
+- Desconto % no rodapé; total recalculado em centavos.
+- Lixeira remove linha.
 
-#### 📦 Etapa 2 - Itens
-1. Clique em **"Adicionar item"**
-2. Preencha:
-   - **Descrição**: Nome do serviço/produto
-   - **Qtd**: Quantidade
-   - **Valor unit.**: Preço unitário
-3. O **subtotal** é calculado automaticamente
-4. Aplique **desconto** percentual se necessário
-5. O **total geral** aparece no rodapé
+### Etapa 3 — Pagamento (3/4)
+- Forma: À vista / Cartão / PIX / **Faturamento** (revela “Dias combinados”).
+- Estimativa de entrega (ex.: 15 dias úteis). Validade fixa 30 dias aparece no PDF.
 
-💡 **Dica**: Você pode remover itens clicando no ícone de lixeira!
-
-#### 💳 Etapa 3 - Pagamento
-- **Forma de pagamento**: Selecione a opção
-  - À vista
-  - Cartão de Crédito
-  - PIX
-  - Faturamento (mostra campo para dias combinados)
-- **Estimativa de entrega**: Ex.: "15 dias úteis"
-
-💡 **Dica**: Para faturamento, especifique os dias combinados!
-
-#### 👀 Etapa 4 - Revisar
-- Revise todas as informações no preview à direita
-- Volte às etapas anteriores se precisar corrigir
-- Clique em **"Visualizar"** para atualizar
-- Clique em **"Imprimir"** para gerar a proposta
+### Etapa 4 — Revisar (4/4) — ÚNICA COM PREVIEW
+- Grid de resumo: Empresa, Responsável, Contrato, Total.
+- Callout escuro explica o bloqueio corporativo.
+- Clique em **`Carregar & Preview`** — tanto no topo quanto no botão grande do card.
+  - Valida obrigatórios + ao menos 1 item; se ok, renderiza o documento A4 no painel ao lado (desktop) ou abaixo (mobile).
+  - Se houver rascunho v3 (ou v1 legado), ele é carregado antes de renderizar.
+- Após o preview, o botão **`Baixar PDF`** (verde, topo) é habilitado.
 
 ---
 
-## 💾 Salvando e Carregando
+## 💾 Salvar / Carregar / Limpar
 
-### Salvar Rascunho
-1. Preencha pelo menos os campos obrigatórios
-2. Clique em **"Salvar"** no topo
-3. Confirmação aparecerá como notificação
+- **Salvar**: valida obrigatórios e grava em `localStorage` chave `performance_proposal_draft_v3` (`{meta:{version:'3.0', docNumber, savedAt}, ...}`). Fallback de leitura para `v1`.
+- **Carregar & Preview**: carrega (se existir) **e** revela o preview; sem rascunho, apenas revela com dados atuais.
+- **Limpar**: confirma e remove v3 e v1; recolhe o preview e desabilita Baixar PDF.
 
-### Carregar Rascunho
-1. Clique em **"Carregar"** no topo
-2. Dados serão preenchidos automaticamente
-3. Preview será atualizado
-
-### Limpar Rascunho
-1. Clique em **"Limpar"** no topo
-2. Confirme a ação
-3. Rascunho será removido do navegador
-
-⚠️ **Atenção**: Os dados são salvos apenas neste navegador/dispositivo!
+> Dados são locais por navegador/dispositivo (~5 MB). Limpar cache apaga.
 
 ---
 
-## 🖨️ Imprimindo a Proposta
+## 📥 Baixar PDF (substitui Imprimir)
 
-### Método 1: Botão Imprimir
-1. Clique em **"Imprimir"** (botão verde no topo)
-2. A janela de impressão do navegador abrirá
-3. Selecione sua impressora ou "Salvar como PDF"
+1. Chegue em **Revisar → Carregar & Preview** (validação passa, preview visível).
+2. Clique em **`Baixar PDF`** no topo.
+3. O arquivo `Proposta-{Cliente}-{PROP-YYYY-MMDD-###}.pdf` baixa automaticamente (A4, 8 mm margem, alta resolução `scale:2`).
+4. Após baixar, um novo `PROP-...` é gerado para a próxima proposta.
+5. Falha no html2pdf → fallback para `window.print()`.
 
-### Método 2: Print do Navegador
-1. Clique em **"Visualizar"** primeiro
-2. Use `Ctrl+P` (Windows) ou `Cmd+P` (Mac)
-3. Ajuste configurações de impressão
-
-### Configurações Recomendadas
-- ✅ Papel: A4
-- ✅ Margens: Padrão ou Mínimas
-- ✅ Escala: 100%
-- ✅ Plano de fundo: Marcado (para cores)
+**Dicas PDF:**
+- Papel A4, retrato, margens padrão.
+- Cores e logos preservados; tabelas com quebra automática.
+- Nome do arquivo usa Empresa (sanitizada) + nº do documento da barra de status.
 
 ---
 
-## 🎨 Personalização Rápida
+## 🎨 Personalização
 
-### Mudar Cores
-Edite `style.css`, linha ~1:
-```css
-:root {
-  --primary: #3b82f6;    /* Azul principal */
-  --accent: #10b981;     /* Verde destaque */
-}
+- **Cores**: `src/css/style.css` → `:root { --primary:#0f2a44; --accent:#0e7a5a; }`
+- **Logo**: `index.html` → `#brandLogo` e `#docLogo` → `src/assets/Logotipo.png`
+- **Faturamento**: `index.html` → `.billing-info` (dois blocos CNPJ)
+- **Validade**: `30 dias` está no HTML do doc e na statusbar; troque em ambos se mudar política.
+
+---
+
+## ❓ Problemas Comuns (3.0)
+
+| Mensagem | Causa | Solução |
+|----------|-------|---------|
+| “Preencha campos obrigatórios” | Falta Empresa/Unidade/Responsável/Telefone ou nenhum item | Complete passos 1–2 |
+| Baixar PDF desabilitado | Preview ainda bloqueado | Revisar → Carregar & Preview |
+| PDF em branco / sem logo | Ad-block ou offline, ou logo >2 MB | Desative ad-block, use PNG ≤2 MB |
+| Rascunho não carrega | LocalStorage desabilitado / privado | Habilite cookies/localStorage, tente outro navegador |
+| Total não fecha | Casas decimais | Corrigido com cálculo em centavos (v3) |
+
+---
+
+## 📊 Diagrama de Fluxo
+
 ```
-
-### Mudar Logo da Empresa
-Edite `index.html`, linha ~26:
-```html
-<img id="brandLogo" src="SUA_URL_OU_ARQUIVO" alt="Performance" />
-```
-
-### Alterar Informações de Faturamento
-Edite `index.html`, linhas ~280-296:
-```html
-<div class="billing-info">
-  <!-- Edite CNPJ, Razão Social, etc. -->
-</div>
+[1 Cliente] → [2 Itens] → [3 Pagamento] → [4 Revisar]
+                                         ├─▶ Carregar & Preview (valida → renderiza A4)
+                                         └─▶ Baixar PDF (html2pdf → arquivo nomeado)
+[Salvar] ── localStorage v3 ──▶ [Carregar & Preview recupera]
 ```
 
 ---
 
-## ❓ Problemas Comuns
-
-### "O rascunho não salva"
-✅ Verifique se o localStorage está habilitado  
-✅ Limpe cache e cookies  
-✅ Tente outro navegador  
-
-### "A impressão sai em branco"
-✅ Clique em "Visualizar" antes de imprimir  
-✅ Verifique se há itens adicionados  
-✅ Use "Salvar como PDF" para testar  
-
-### "Os ícones não aparecem"
-✅ Verifique conexão com internet (CDN)  
-✅ Desative ad-blockers temporariamente  
-
-### "O total não fecha centavos"
-✅ Isso foi corrigido na v2.1.0  
-✅ Atualize seu arquivo script.js  
-
----
-
-## 📊 Fluxo Completo
-
-```
-┌─────────────────────────────────────────┐
-│  1. Abrir index.html no navegador       │
-└─────────────┬───────────────────────────┘
-              │
-┌─────────────▼───────────────────────────┐
-│  2. Preencher dados do cliente          │
-│     - Campos obrigatórios marcados *    │
-└─────────────┬───────────────────────────┘
-              │
-┌─────────────▼───────────────────────────┐
-│  3. Adicionar itens da proposta         │
-│     - Quantidades e valores             │
-│     - Desconto opcional                 │
-└─────────────┬───────────────────────────┘
-              │
-┌─────────────▼───────────────────────────┐
-│  4. Configurar pagamento e entrega      │
-│     - Forma de pagamento                │
-│     - Prazo de entrega                  │
-└─────────────┬───────────────────────────┘
-              │
-┌─────────────▼───────────────────────────┐
-│  5. Revisar no preview                  │
-│     - Conferir todos os dados           │
-│     - Corrigir se necessário            │
-└─────────────┬───────────────────────────┘
-              │
-┌─────────────▼───────────────────────────┐
-│  6. Salvar rascunho (opcional)          │
-│     - Para continuar depois             │
-└─────────────┬───────────────────────────┘
-              │
-┌─────────────▼───────────────────────────┐
-│  7. Imprimir ou exportar PDF            │
-│     - Botão Imprimir                    │
-│     - Ou Ctrl+P                         │
-└─────────────────────────────────────────┘
-```
-
----
-
-## 🎯 Boas Práticas
-
-### ✅ Faça
-- Preencha todos os campos obrigatórios
-- Revise antes de imprimir
-- Salve rascunhos importantes
-- Use descrições claras nos itens
-- Teste em diferentes navegadores
-
-### ❌ Não Faça
-- Não deixe o navegador aberto por dias (pode perder dados)
-- Não confie apenas no localStorage para dados críticos
-- Não imprima sem visualizar antes
-- Não use caracteres especiais nos campos de texto
-
----
-
-## 📞 Suporte
-
-Para dúvidas ou problemas:
-1. Consulte este guia
-2. Veja o [README.md](README.md)
-3. Reporte issues no repositório
-
----
-
-*Versão: 2.1.0 | Última atualização: Agosto 2025*
+*Versão: 3.0.0 Corporativa | 19/08/2026*

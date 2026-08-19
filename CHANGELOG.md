@@ -1,94 +1,64 @@
-# 📝 CHANGELOG - Histórico de Versões
+# 📝 CHANGELOG — Histórico de Versões
 
-Todas as mudanças importantes neste projeto serão documentadas neste arquivo.
+Baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e [SemVer](https://semver.org/lang/pt-BR/).
 
-O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
-e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
+---
+
+## [3.0.0] — 2026-08-19 — Corporativa
+
+### 🎯 Objetivo
+Transformar o gerador em produto **corporativo governado**: preview só no final e exportação confiável em PDF.
+
+### ✨ Adicionado
+- **Preview controlado**: painel oculto com estado vazio corporativo; liberação apenas em **Revisar (4/4) → Carregar & Preview** (topbar e CTA do card). Flag `previewUnlocked`, validação de obrigatórios e de itens antes de liberar.
+- **Download PDF corporativo**: integração **html2pdf.js 0.10.1** (html2canvas + jsPDF), A4 com margens 8 mm, `scale:2`, nome `Proposta-{Cliente}-{PROP-YYYY-MMDD-###}.pdf`. Sem `window.print` e sem `reload`.
+- **Número de documento**: `PROP-YYYY-MMDD-###` no header, statusbar e nome do arquivo; renovado após cada download.
+- **Barra de status corporativa**: navy, dot verde, validade e nº do documento.
+- **Progresso do wizard**: barra 25/50/75/100%.
+- **Resumo de Revisão**: grid com Empresa/Responsável/Contrato/Total antes do preview.
+- **Validação de logo**: MIME (PNG/JPG/WebP) e limite 2 MB com feedback de nome/tamanho.
+- **Contador de observações** e hints corporativos.
+- **Manifest 3.0**: `theme_color #0f2a44`, `name` corporativo.
+
+### 🔄 Alterado
+- **Topbar**: `Visualizar` + `Imprimir` removidos → **`Carregar & Preview` (primary)** + **`Baixar PDF` (accent, desabilitado até preview)** + `Salvar`/`Limpar` ghost.
+- **Paleta**: de azul claro/verde genérico para **navy corporativo** (`#0f2a44`, `#e9eef6`, `#0e7a5a`), cards mais sóbrios e sombras suaves.
+- **Layout**: grid `1fr 560px` com preview sticky; em mobile o preview desce e faz scroll suave ao liberar.
+- **LocalStorage**: nova chave `performance_proposal_draft_v3` com `meta {version:'3.0', docNumber, savedAt}`; leitura com fallback para `v1`.
+- **CSS**: `--card-radius 16px`, toolbar do preview com selo “A4 • Corporativo”, empty-state com checklist.
+- **JS**: `buildPreview()` puro, `revealPreview()` governado, `updateTotals()` reativo, `validateRequired()` central.
+
+### 🗑️ Removido
+- Botão `Visualizar` isolado e função `window.print` com `innerHTML` + `reload` (causava perda de dados).
+
+### 🐛 Corrigido
+- Perda de estado ao imprimir; PDFs em branco por preview incompleto; logo externo do Drive.
+- Wizard sem progresso visível e sem bloqueio de exportação parcial.
+
+### 🔒 Segurança
+- Sanitização `escapeHtml` mantida; validação de upload impede arquivos maliciosos grandes.
 
 ---
 
 ## [2.1.0] - 2025-08-18
 
 ### ✨ Adicionado
-- Sistema de wizard com 4 etapas (Cliente, Itens, Pagamento, Revisão)
-- Preview em tempo real da proposta
-- Salvamento de rascunhos no localStorage
-- Validação de campos obrigatórios
-- Validação de email e telefone
-- Formatação automática de CNPJ/CPF
-- Upload de logo do cliente
-- Cálculo automático de subtotais e descontos
-- Sistema de notificações visuais
-- Layout otimizado para impressão
-- Design responsivo para dispositivos móveis
+- Wizard 4 etapas, preview em tempo real, salvamento localStorage, validação de obrigatórios/e-mail/telefone, formatação CNPJ/CPF, upload de logo, cálculos automáticos, notificações, layout de impressão, responsivo.
 
 ### 🎨 Melhorado
-- Interface moderna com gradientes e sombras
-- Animações suaves nas transições
-- Feedback visual nos botões e inputs
-- Organização visual das informações de faturamento
+- Interface com gradientes e animações.
 
 ### 🐛 Corrigido
-- Problemas de navegação entre etapas do wizard
-- Cálculos de totais com casas decimais
+- Navegação do wizard e arredondamentos de totais.
 
 ---
 
 ## [2.0.0] - 2025-XX-XX
-
-### ✨ Adicionado
-- Primeira versão do Gerador de Propostas
-- Estrutura base HTML/CSS/JS
+- Primeira versão do Gerador de Propostas — estrutura base HTML/CSS/JS.
 
 ---
 
 ## Tipos de Mudanças
+- **Adicionado** (`Added`) · **Alterado** (`Changed`) · **Descontinuado** (`Deprecated`) · **Removido** (`Removed`) · **Corrigido** (`Fixed`) · **Segurança** (`Security`)
 
-- **Adicionado** (`Added`): Novas funcionalidades
-- **Alterado** (`Changed`): Mudanças em funcionalidades existentes
-- **Descontinuado** (`Deprecated`): Funcionalidades que serão removidas em breve
-- **Removido** (`Removed`): Funcionalidades removidas nesta versão
-- **Corrigido** (`Fixed`): Correção de bugs
-- **Segurança** (`Security`): Melhorias de segurança
-
----
-
-## Notas da Versão 2.1.0
-
-### Funcionalidades Principais
-
-1. **Wizard de 4 Etapas**
-   - Navegação intuitiva passo-a-passo
-   - Indicadores visuais de progresso
-   - Validação por etapa
-
-2. **Preview em Tempo Real**
-   - Atualização instantânea dos dados
-   - Layout idêntico ao da impressão
-   - Visualização profissional
-
-3. **Salvamento Local**
-   - Dados persistem no navegador
-   - Carregamento rápido de rascunhos
-   - Sem necessidade de servidor
-
-4. **Impressão Profissional**
-   - Layout dedicado para impressão
-   - Ocultação de elementos da UI
-   - Pronto para PDF ou papel
-
-### Tecnologias
-- HTML5 semântico
-- CSS3 com variáveis
-- JavaScript ES6+
-- Font Awesome 6 (CDN)
-- Google Fonts - Inter (CDN)
-
-### Conhecidas Limitações
-- Requer conexão internet para CDN (fontes e ícones)
-- Limite de ~5MB do localStorage
-- Dados salvos apenas no dispositivo local
-
----
-
-*Para mais informações, consulte o [README.md](README.md) e [PLANO_MELHORIAS.md](PLANO_MELHORIAS.md)*
+*Veja também `README.md` e `GUIA_USO.md` v3.0.*
