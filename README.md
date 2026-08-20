@@ -2,7 +2,7 @@
 
 ## Versão 3.0 Corporativa
 
-[![Version](https://img.shields.io/badge/version-3.0.3-0f2a44.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.0.4-0f2a44.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PDF](https://img.shields.io/badge/PDF-html2pdf-0e7a5a.svg)](#-download-em-pdf-corporativo)
 [![Status](https://img.shields.io/badge/status-corporativo-0f2a44.svg)](#)
@@ -86,6 +86,10 @@ gerador-proposta/
 │   ├── js/script.js        # lógica 3.0 (previewUnlocked, html2pdf, validação)
 │   ├── assets/             # logos e favicons
 │   └── manifest.json       # PWA 3.0
+├── tests/                  # suíte de testes (Node, sem build)
+│   ├── pdf-export.test.mjs             # correção do PDF em branco
+│   ├── pdf-export.integration.test.mjs # fluxo de exportação em DOM real
+│   └── run.sh
 ├── README.md               # este arquivo
 ├── CHANGELOG.md
 ├── GUIA_USO.md             # guia 3.0
@@ -105,6 +109,20 @@ python -m http.server 8000
 ```
 
 Sem build. Abra `index.html` direto se preferir (CDNs requerem internet).
+
+---
+
+## 🧪 Testes
+
+```bash
+./tests/run.sh
+```
+
+Os testes unitários rodam só com Node, sem dependências. Os testes de integração
+carregam o `index.html` e o `script.js` reais em um DOM e executam a exportação
+de ponta a ponta com um `html2pdf` instrumentado — inclusive o caso do canvas em
+branco, que deve **abortar** o download. Eles usam `jsdom`; sem ele instalado
+(`npm i -D jsdom`) são ignorados sem falhar a suíte.
 
 ---
 
@@ -135,6 +153,8 @@ Sem build. Abra `index.html` direto se preferir (CDNs requerem internet).
 | Baixar PDF desabilitado | Preview ainda bloqueado | Vá em Revisar → Carregar & Preview |
 | Gerador de PDF indisponível | CDN do html2pdf bloqueado por ad-block ou sem internet | Desative o bloqueador e verifique a conexão |
 | Logo não aparece | Arquivo >2 MB ou formato inválido | Use PNG/JPG ≤2 MB |
+| PDF sai em branco | Versão antiga em cache no navegador | Recarregue com Ctrl+Shift+R (os assets já usam `?v=3.0.4`) |
+| “O PDF sairia em branco” | O preview não terminou de renderizar | Aguarde o preview carregar e tente novamente |
 
 ---
 
@@ -149,4 +169,4 @@ MIT — veja `LICENSE`.
 **Filipe Goulart** — Gerador de Propostas  
 **Grupo Performance Ocupacional** — Itaguara/MG & Itatiaiuçu/MG
 
-*Última atualização: 19/08/2026 — v3.0.2 Corporativa*
+*Última atualização: 20/08/2026 — v3.0.4 Corporativa*

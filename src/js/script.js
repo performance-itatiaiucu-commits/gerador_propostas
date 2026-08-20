@@ -340,7 +340,19 @@ clearDraftBtn.addEventListener('click', ()=>{
   }
 });
 
-/* PDF Download - exporta clone em largura A4 fixa (evita cortes e layout responsivo) */
+/* PDF Download — captura o preview visível.
+   Regra de ouro: nada que será renderizado pode estar fora da viewport.
+   O html2canvas mede o elemento com getBoundingClientRect() e reaplica essas
+   coordenadas no clone interno; um ancestral com `left:-10000px` faz a captura
+   cair fora da área desenhada e o PDF sai em branco. Por isso exportamos o
+   próprio #proposalDoc, apenas alargado temporariamente para a largura útil A4. */
+
+/* Largura útil A4 @96dpi: 210mm ≈ 794px menos as margens de 8mm de cada lado
+   (8mm ≈ 30,2px → ≈ 60,5px no total) ≈ 733px. Capturar na largura útil, e não
+   nos 794px da folha inteira, evita que o html2pdf reescale o canvas para caber
+   na área imprimível — reescala que cortava a lateral direita do documento. */
+const A4_CONTENT_WIDTH = 733;
+
 function waitForImages(root, timeout=2000){
   const pending = $$('img', root).filter(img=> !img.complete);
   if(!pending.length) return Promise.resolve();
@@ -354,6 +366,36 @@ function waitForImages(root, timeout=2000){
   ]);
 }
 
+/* Barreira final contra o PDF em branco: inspeciona o canvas gerado pelo
+   html2canvas antes de deixá-lo virar arquivo. Amostra pixels em uma grade
+   (varrer tudo seria caro em documentos longos); se todos forem idênticos, o
+   canvas é uma chapa lisa — branca — e a exportação é abortada. */
+function assertCanvasHasContent(canvas){
+  if(!canvas || !canvas.width || !canvas.height){
+    throw new Error('Canvas vazio: o preview não pôde ser capturado.');
+  }
+
+  let ctx;
+  try { ctx = canvas.getContext('2d'); } catch(_){ ctx = null; }
+  if(!ctx) return; // sem contexto 2d não há como validar; segue o fluxo normal.
+
+  const stepX = Math.max(1, Math.floor(canvas.width / 64));
+  const stepY = Math.max(1, Math.floor(canvas.height / 64));
+  let reference = null;
+
+  for(let y=0; y<canvas.height; y+=stepY){
+    for(let x=0; x<canvas.width; x+=stepX){
+      let pixel;
+      try { pixel = ctx.getImageData(x, y, 1, 1).data; } catch(_){ return; }
+      const key = pixel[0]+','+pixel[1]+','+pixel[2]+','+pixel[3];
+      if(reference === null){ reference = key; continue; }
+      if(key !== reference) return; // encontrou conteúdo: canvas válido.
+    }
+  }
+
+  throw new Error('O PDF sairia em branco: o preview não foi renderizado a tempo.');
+}
+
 async function exportPDF(){
   buildPreview();
 
@@ -363,27 +405,30 @@ async function exportPDF(){
 
   const filename = `Proposta-${(company.value||'Cliente').replace(/[^a-zA-Z0-9]/g,'_')}-${currentDocNumber}.pdf`;
 
+  // O preview precisa estar realmente renderizado: sem caixa visível não há o que capturar.
+  if(previewSticky) previewSticky.style.display = 'block';
+  if(previewEmpty) previewEmpty.style.display = 'none';
+
   // Garante que a fonte Inter esteja carregada antes do canvas (evita fonte errada no PDF)
   try { await Promise.race([document.fonts.ready, new Promise(r=>setTimeout(r,1500))]); } catch(_){}
 
-  // O elemento enviado ao html2pdf não pode ser o mesmo elemento posicionado fora da tela.
-  // O html2pdf clona a origem em seu próprio container; se a origem mantiver left:-10000px,
-  // a cópia também fica fora do canvas e o arquivo resultante sai em branco.
-  const sandbox = document.createElement('div');
-  sandbox.id = 'pdf-export-sandbox';
-  sandbox.setAttribute('aria-hidden', 'true');
-
-  const wrap = document.createElement('div');
-  wrap.id = 'pdf-export-wrap';
-  const clone = proposalDoc.cloneNode(true);
-  clone.removeAttribute('id');
-  clone.querySelectorAll('[id]').forEach(el=> el.removeAttribute('id'));
-  wrap.appendChild(clone);
-  sandbox.appendChild(wrap);
-  document.body.appendChild(sandbox);
-
   // Aguarda todas as imagens do documento exportado, inclusive a marca corporativa.
-  await waitForImages(wrap);
+  await waitForImages(proposalDoc);
+
+  // Fixa a largura útil A4 no próprio elemento visível durante a captura.
+  // Sem posicionamento fora da tela: o documento continua na viewport, que é
+  // exatamente o que o html2canvas consegue desenhar.
+  document.body.classList.add('is-exporting-pdf');
+  proposalDoc.classList.add('pdf-export-target');
+
+  // Rola até o topo do documento; scrollX/scrollY:0 abaixo só é coerente se a
+  // página estiver de fato no topo quando o clone é montado.
+  const prevScrollX = window.scrollX || window.pageXOffset || 0;
+  const prevScrollY = window.scrollY || window.pageYOffset || 0;
+  window.scrollTo(0, 0);
+
+  // Deixa o browser aplicar o layout de exportação antes de medir/desenhar.
+  await new Promise(r=> requestAnimationFrame(()=> requestAnimationFrame(r)));
 
   const opt = {
     margin: 8,
@@ -393,7 +438,8 @@ async function exportPDF(){
       scale: 2,
       useCORS: true,
       backgroundColor: '#ffffff',
-      windowWidth: 1200, // força layout desktop independente da tela
+      windowWidth: A4_CONTENT_WIDTH,
+      width: A4_CONTENT_WIDTH,
       scrollX: 0,
       scrollY: 0,
       logging: false
@@ -406,14 +452,24 @@ async function exportPDF(){
   };
 
   try{
-    await window.html2pdf().set(opt).from(wrap).save();
+    const worker = window.html2pdf().set(opt).from(proposalDoc);
+
+    // Valida o canvas ANTES de salvar: um canvas sem dimensão (ou totalmente
+    // uniforme) gera justamente o PDF em branco que queremos impedir.
+    await worker.toCanvas();
+    const canvas = await worker.get('canvas');
+    assertCanvasHasContent(canvas);
+
+    await worker.save();
     showNotification('PDF baixado: '+filename, 'success');
     // gera novo número para próxima proposta
     currentDocNumber = genDocNumber();
     docNumber.textContent = currentDocNumber;
     docNumberLabel.textContent = currentDocNumber;
   } finally {
-    sandbox.remove();
+    proposalDoc.classList.remove('pdf-export-target');
+    document.body.classList.remove('is-exporting-pdf');
+    window.scrollTo(prevScrollX, prevScrollY);
   }
 }
 

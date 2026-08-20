@@ -4,6 +4,23 @@ Baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e [SemVer
 
 ---
 
+## [3.0.4] — 2026-08-20 — PDF em branco definitivamente corrigido
+
+### 🐛 Corrigido
+- **PDF em branco**: a exportação agora **captura diretamente o preview visível** (`#proposalDoc`). O `html2canvas` mede o elemento com `getBoundingClientRect()` e reaplica essas coordenadas no clone interno — com o documento fora da viewport, o desenho caía fora da área do canvas e o arquivo saía em branco.
+- **Sandbox fora da viewport removido**: `#pdf-export-sandbox` / `#pdf-export-wrap` (e o `left: -10000px`) deixaram de existir no CSS e no JS. Durante a captura o documento permanece na tela, apenas com a largura de exportação aplicada.
+- **Validação do canvas antes do download**: `assertCanvasHasContent()` inspeciona o canvas gerado (dimensões e amostragem de pixels em grade) e **aborta a exportação** se ele estiver vazio ou totalmente uniforme, em vez de baixar um PDF em branco.
+
+### 🔄 Alterado
+- **Largura útil A4 de 733px** (210 mm ≈ 794 px menos 8 mm de margem por lado) aplicada ao `html2canvas` (`width`/`windowWidth`) e ao CSS de exportação, substituindo os antigos 1200 px de `windowWidth` e 794 px de largura. Evita reescala do canvas e corte da lateral direita.
+- **Cache busting `?v=3.0.4`** em `src/css/style.css` e `src/js/script.js`, garantindo que navegadores com a versão anterior em cache recebam a correção.
+- O preview `sticky` passa a `static` durante a exportação e o scroll do usuário é restaurado ao final.
+
+### ✅ Testes
+- Nova suíte `tests/pdf-export.test.mjs` (`node tests/pdf-export.test.mjs`): cobre captura do preview visível, ausência de sandbox offscreen, validação do canvas (inclusive o caso do canvas totalmente branco) e o cache busting.
+
+---
+
 ## [3.0.3] — 2026-08-20 — Correção da exportação PDF
 
 ### 🐛 Corrigido
