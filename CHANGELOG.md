@@ -4,6 +4,18 @@ Baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e [SemVer
 
 ---
 
+## [3.0.6] — 2026-08-20 — Documento centralizado na folha A4
+
+### 🔄 Alterado
+- **Margens do PDF aumentadas e equilibradas**: de 8 mm para **15 mm** em cada lado da folha A4. O documento agora fica visualmente centralizado/enquadrado na página, com margens laterais iguais e mais respiro.
+- **Largura útil A4 recalculada**: de 733 px para **680 px** (210 mm − 2 × 15 mm @96 dpi), aplicada ao `html2canvas` (`width`/`windowWidth`) e ao CSS de exportação.
+- Cache busting `?v=3.0.6` em `src/css/style.css` e `src/js/script.js`; rodapé com a nova versão.
+
+### ✅ Testes
+- Suíte atualizada: largura útil A4 = 680 px e margem = 15 mm (unitários e integração).
+
+---
+
 ## [3.0.5] — 2026-08-20 — Proporção A4 corrigida (conteúdo em largura total)
 
 ### 🐛 Corrigido

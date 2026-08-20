@@ -1,13 +1,13 @@
 /**
- * Testes da correção do PDF em branco (v3.0.5).
+ * Testes da correção do PDF em branco (v3.0.6).
  *
  * Rodam sem dependências externas: um mini-runner + jsdom quando disponível.
  * Cobrem as cinco garantias da correção:
  *   1. a exportação captura diretamente o preview visível (#proposalDoc);
  *   2. não existe mais sandbox posicionado fora da viewport;
  *   3. o canvas é validado antes do download;
- *   4. a largura útil A4 é 733px;
- *   5. CSS e JS carregam com cache busting ?v=3.0.5.
+ *   4. a largura útil A4 é 680px (margens 15mm);
+ *   5. CSS e JS carregam com cache busting ?v=3.0.6.
  *
  * Uso: node tests/pdf-export.test.mjs
  */
@@ -163,12 +163,12 @@ test('a validação não quebra se getImageData for bloqueado (canvas tainted)',
   fn(tainted); // deve seguir o fluxo sem lançar
 });
 
-/* ---------- 4. largura útil A4 = 733px ---------- */
+/* ---------- 4. largura útil A4 = 680px (margens 15mm) ---------- */
 
-test('a constante de largura útil A4 é 733px', () => {
+test('a constante de largura útil A4 é 680px', () => {
   const m = js.match(/const A4_CONTENT_WIDTH\s*=\s*(\d+)/);
   assert(m, 'A4_CONTENT_WIDTH deve estar definida');
-  assertEqual(Number(m[1]), 733, 'largura útil A4');
+  assertEqual(Number(m[1]), 680, 'largura útil A4');
 });
 
 test('html2canvas recebe a largura útil A4', () => {
@@ -178,24 +178,24 @@ test('html2canvas recebe a largura útil A4', () => {
   assertNoMatch(body, /windowWidth:\s*1200/, 'a largura desktop de 1200px foi substituída');
 });
 
-test('o CSS de exportação aplica 733px ao documento', () => {
+test('o CSS de exportação aplica 680px ao documento', () => {
   const block = css.match(/#proposalDoc\.pdf-export-target\s*\{[^}]*\}/);
   assert(block, 'o bloco de exportação do #proposalDoc deve existir');
-  assertMatch(block[0], /width:\s*733px/, 'a largura de exportação deve ser 733px');
+  assertMatch(block[0], /width:\s*680px/, 'a largura de exportação deve ser 680px');
   assertNoMatch(block[0], /width:\s*794px/, '794px é a folha inteira, não a largura útil');
 });
 
-test('733px corresponde a A4 menos as margens configuradas', () => {
-  // 210mm @96dpi ≈ 794px; margem 8mm de cada lado ≈ 30px por lado.
+test('680px corresponde a A4 menos as margens configuradas (15mm)', () => {
+  // 210mm @96dpi ≈ 794px; margem 15mm de cada lado ≈ 57px por lado.
   const A4_FULL = Math.round(210 * 96 / 25.4);        // 794
-  const marginPx = Math.round(8 * 96 / 25.4);          // 30
-  const usable = A4_FULL - marginPx * 2;               // 734
-  assert(Math.abs(usable - 733) <= 1,
-    `a largura útil declarada (733px) deve bater com o cálculo A4 (${usable}px)`);
-  assertMatch(js, /margin:\s*8/, 'a margem do html2pdf deve continuar em 8mm');
+  const marginPx = Math.round(15 * 96 / 25.4);         // 57
+  const usable = A4_FULL - marginPx * 2;               // 680
+  assert(Math.abs(usable - 680) <= 1,
+    `a largura útil declarada (680px) deve bater com o cálculo A4 (${usable}px)`);
+  assertMatch(js, /margin:\s*15/, 'a margem do html2pdf deve ser 15mm');
 });
 
-/* ---------- 4b. proporção A4 (v3.0.5) ---------- */
+/* ---------- 4b. proporção A4 (v3.0.6) ---------- */
 
 test('exportPDF injeta o fix de layout do container do html2pdf (left:0)', () => {
   const body = js.slice(js.indexOf('async function exportPDF'));
@@ -239,14 +239,14 @@ test('nenhuma regra do CSS marca .doc-items/.pd-table tr com page-break-inside',
   assertMatch(combined, /\.doc-accept/, 'o aceite continua protegido');
 });
 
-/* ---------- 5. cache busting ?v=3.0.5 ---------- */
+/* ---------- 5. cache busting ?v=3.0.6 ---------- */
 
-test('o CSS é carregado com ?v=3.0.5', () => {
-  assertMatch(html, /href="src\/css\/style\.css\?v=3\.0\.5"/, 'cache busting do CSS');
+test('o CSS é carregado com ?v=3.0.6', () => {
+  assertMatch(html, /href="src\/css\/style\.css\?v=3\.0\.6"/, 'cache busting do CSS');
 });
 
-test('o JS é carregado com ?v=3.0.5', () => {
-  assertMatch(html, /src="src\/js\/script\.js\?v=3\.0\.5"/, 'cache busting do JS');
+test('o JS é carregado com ?v=3.0.6', () => {
+  assertMatch(html, /src="src\/js\/script\.js\?v=3\.0\.6"/, 'cache busting do JS');
 });
 
 test('não restam referências sem versão aos assets locais', () => {
@@ -254,17 +254,17 @@ test('não restam referências sem versão aos assets locais', () => {
   assertNoMatch(html, /src="src\/js\/script\.js"/, 'JS sem query de versão');
 });
 
-test('o rodapé exibe a versão 3.0.5', () => {
-  assertMatch(html, /v3\.0\.5/, 'a versão visível deve ser 3.0.5');
+test('o rodapé exibe a versão 3.0.6', () => {
+  assertMatch(html, /v3\.0\.6/, 'a versão visível deve ser 3.0.6');
 });
 
-test('o CHANGELOG documenta a versão 3.0.5', () => {
-  assertMatch(read('CHANGELOG.md'), /##\s*\[3\.0\.5\]/, 'entrada 3.0.5 no CHANGELOG');
+test('o CHANGELOG documenta a versão 3.0.6', () => {
+  assertMatch(read('CHANGELOG.md'), /##\s*\[3\.0\.6\]/, 'entrada 3.0.6 no CHANGELOG');
 });
 
 /* ---------- integração em DOM real (jsdom, se disponível) ---------- */
 
-test('[dom] o documento exportado fica dentro da viewport com 733px', async () => {
+test('[dom] o documento exportado fica dentro da viewport com 680px', async () => {
   const dom = await makeDom();
   if (!dom) return skip('jsdom indisponível');
   const { document } = dom.window;
@@ -299,8 +299,8 @@ test('[dom] index.html referencia CSS e JS versionados', async () => {
   const script = document.querySelector('script[src^="src/js/script.js"]');
   assert(link, 'o CSS local deve estar referenciado');
   assert(script, 'o JS local deve estar referenciado');
-  assertEqual(link.getAttribute('href'), 'src/css/style.css?v=3.0.5', 'href do CSS');
-  assertEqual(script.getAttribute('src'), 'src/js/script.js?v=3.0.5', 'src do JS');
+  assertEqual(link.getAttribute('href'), 'src/css/style.css?v=3.0.6', 'href do CSS');
+  assertEqual(script.getAttribute('src'), 'src/js/script.js?v=3.0.6', 'src do JS');
 });
 
 /* ---------- helpers ---------- */
@@ -365,7 +365,7 @@ const run = async () => {
   let pass = 0;
   const failures = [];
 
-  console.log('\n  Correção do PDF em branco — v3.0.5\n');
+  console.log('\n  Correção do PDF em branco — v3.0.6\n');
   for (const { name, fn } of tests) {
     try {
       await fn();
