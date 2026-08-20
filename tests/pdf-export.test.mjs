@@ -224,6 +224,21 @@ test('o CSS de exportação não marca .doc-items/.pd-table tr com page-break-in
   assertMatch(combined, /\.doc-accept/, 'o aceite continua protegido');
 });
 
+test('nenhuma regra do CSS marca .doc-items/.pd-table tr com page-break-inside', () => {
+  // Varre TODOS os blocos de regra com page-break-inside: avoid (exportação E impressão).
+  // stripComments evita que os comentários explicativos (que citam os seletores) contaminem a checagem.
+  const cleanCss = stripComments(css);
+  const rules = cleanCss.match(/[^{}]*\{[^}]*page-break-inside:\s*avoid;[^}]*\}/g) || [];
+  assert(rules.length > 0, 'deve haver blocos protegidos no CSS');
+  rules.forEach((r) => {
+    assertNoMatch(r, /\.doc-items/, '.doc-items não pode ser evitado em nenhuma regra');
+    assertNoMatch(r, /\.pd-table tr/, '.pd-table tr não pode ser evitado em nenhuma regra');
+  });
+  const combined = rules.join('');
+  assertMatch(combined, /\.doc-totals/, 'os totais continuam protegidos');
+  assertMatch(combined, /\.doc-accept/, 'o aceite continua protegido');
+});
+
 /* ---------- 5. cache busting ?v=3.0.5 ---------- */
 
 test('o CSS é carregado com ?v=3.0.5', () => {

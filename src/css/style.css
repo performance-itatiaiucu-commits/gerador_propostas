@@ -291,7 +291,10 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   .doc-signatures { page-break-inside: avoid; }
   .sig-space { height: 88px; }
   .sig-line { width: 100%; border-bottom: 1.5px solid #0a1e32; }
-  .doc-header, .doc-kv, .doc-items, .pd-table tr, .doc-totals, .billing-info, .billing-section, .doc-accept, .sig-block {
+  /* v3.0.5: .doc-items e .pd-table tr ficam fora do page-break-inside também na
+     impressão do navegador (fallback) — evita empurrar a tabela inteira para a
+     próxima página quando ela é grande. */
+  .doc-header, .doc-kv, .doc-totals, .billing-info, .billing-section, .doc-accept, .sig-block {
     page-break-inside: avoid;
     break-inside: avoid;
   }
