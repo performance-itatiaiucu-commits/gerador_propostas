@@ -464,13 +464,16 @@ async function exportPDF(){
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak: {
       mode: ['css', 'legacy'],
-      // A tabela de itens NÃO entra no avoid: quando a tabela é grande, o plugin
-      // de quebra insere divs de padding dentro do <tbody> (HTML inválido) e o
-      // navegador os realoca, criando buracos enormes na página. Deixando a
-      // tabela quebrar naturalmente, o conteúdo flui e as páginas são bem
-      // aproveitadas. Blocos importantes (cabeçalho, totais, faturamento,
-      // aceite e assinaturas) continuam protegidos contra corte.
-      avoid: ['.doc-header', '.doc-kv', '.doc-totals', '.billing-info', '.billing-section', '.doc-accept', '.doc-signatures', '.sig-block']
+      // Seção que DEVE começar em uma nova página: assinaturas. Como é o
+      // último bloco da proposta, garante que seja sempre em uma página limpa,
+      // evitando que o campo de assinatura e carimbo fique órfão ou cortado.
+      before: ['.doc-signatures'],
+      // Blocos que NUNCA devem ser quebrados no meio. A tabela (`.pd-table`)
+      // ficou de fora porque o plugin tenta aplicar `page-break-inside`
+      // via `mode: 'css'` e acaba injetando divs dentro do <tbody>,
+      // criando buracos enormes. A tabela quebra naturalmente entre linhas
+      // (seguro, pois cada linha é uma unidade completa de informação).
+      avoid: ['.doc-header', '.doc-kv', '.doc-totals', '.billing-info', '.billing-section', '.doc-accept', '.doc-signatures', '.sig-block', '.payment-info-section']
     }
   };
 

@@ -299,6 +299,11 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
     page-break-inside: avoid;
     break-inside: avoid;
   }
+  /* Garante que as assinaturas comecem em página limpa também na impressão */
+  .doc-signatures {
+    page-break-before: always;
+    break-before: page;
+  }
 }
 
 /* ---- Exportação PDF (captura direta do preview visível) ---- */
@@ -336,6 +341,13 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
 #proposalDoc.pdf-export-target .sig-block {
   page-break-inside: avoid;
   break-inside: avoid;
+}
+/* A seção de assinaturas sempre começa em uma nova página para garantir
+   que o bloco de assinatura e carimbo não seja separado do restante do documento
+   por uma quebra de página. O JS `before: ['.doc-signatures']` reforça. */
+#proposalDoc.pdf-export-target .doc-signatures {
+  page-break-before: always;
+  break-before: page;
 }
 /* O preview sticky deslocaria o documento durante a captura; fixa no fluxo. */
 body.is-exporting-pdf .preview-sticky { position: static; }
