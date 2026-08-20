@@ -4,6 +4,20 @@ Baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e [SemVer
 
 ---
 
+## [3.0.9] — 2026-08-20 — Assinatura da empresa cliente no PDF
+
+### 🐛 Corrigido
+- **A segunda assinatura não aparecia no PDF baixado**: a captura do html2canvas usa uma janela virtual de `680px`, que ativava o breakpoint responsivo de `900px` e empilhava os campos de assinatura. Dependendo da paginação, o campo da empresa cliente ficava fora da área exportada.
+- O alvo de exportação agora mantém explicitamente as assinaturas da **Performance Ocupacional** e da **empresa cliente** em duas colunas, alinhadas lado a lado. A mesma garantia foi aplicada ao fallback de impressão.
+
+### 🔄 Alterado
+- Cache busting `?v=3.0.9` em `src/css/style.css` e `src/js/script.js`; rodapé com a nova versão.
+
+### ✅ Testes
+- Novo teste de regressão confirma que o layout de exportação preserva as duas colunas mesmo na largura A4 de `680px`.
+
+---
+
 ## [3.0.8] — 2026-08-20 — Campos de assinatura (Performance Ocupacional e empresa cliente)
 
 ### ✨ Adicionado

@@ -326,7 +326,13 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   .preview-column{ width:100%; }
   .proposal-doc{ box-shadow:none; border:none; padding:0; border-radius:0; }
   .client-logo.is-visible { display: inline-block !important; height: 96px; max-width: 270px; max-height: 96px; }
-  .doc-signatures { page-break-inside: avoid; }
+  /* A folha A4 tem menos de 900px e também ativa o breakpoint responsivo.
+     Reafirma as duas colunas no modo de impressão para que a assinatura do
+     cliente não seja empurrada para fora do bloco/página. */
+  .doc-signatures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    page-break-inside: avoid;
+  }
   .sig-space { height: 64px; }
   .sig-line { width: 100%; border-bottom: 1.5px solid #0a1e32; }
   /* v3.0.5: .doc-items e .pd-table tr ficam fora do page-break-inside também na
@@ -381,6 +387,16 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
 #proposalDoc.pdf-export-target .sig-block {
   page-break-inside: avoid;
   break-inside: avoid;
+}
+/* O html2canvas captura o clone com windowWidth:680, o que ativa o breakpoint
+   mobile de 900px e transformaria as assinaturas em uma única coluna. Além de
+   divergir da medição feita antes da captura, isso pode deixar a assinatura do
+   cliente abaixo da área paginada. Mantemos explicitamente os dois campos lado
+   a lado no alvo do PDF; a maior especificidade prevalece sobre o responsivo. */
+#proposalDoc.pdf-export-target .doc-signatures {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 40px;
+  row-gap: 0;
 }
 /* v3.0.7: a quebra antes das assinaturas virou CONDICIONAL. O JS mede o bloco
    com o layout de exportação aplicado e só liga `.force-signature-break` quando

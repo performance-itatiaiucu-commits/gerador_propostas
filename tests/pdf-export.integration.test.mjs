@@ -1,5 +1,5 @@
 /**
- * Teste de integração da exportação PDF (v3.0.8).
+ * Teste de integração da exportação PDF (v3.0.9).
  *
  * Carrega o index.html e o src/js/script.js REAIS em um DOM (jsdom) e executa
  * o fluxo de download de verdade, com um html2pdf falso no lugar da biblioteca.
