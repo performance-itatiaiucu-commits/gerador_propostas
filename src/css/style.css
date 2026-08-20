@@ -298,13 +298,21 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
 }
 
 /* ---- Exportação PDF (clone em largura A4 fixa) ---- */
-#pdf-export-wrap {
-  position: absolute;
+/* Apenas o sandbox fica fora da tela. O #pdf-export-wrap é a origem clonada pelo
+   html2pdf e precisa permanecer em (0, 0), ou sua cópia será capturada em branco. */
+#pdf-export-sandbox {
+  position: fixed;
   left: -10000px;
   top: 0;
+  width: 794px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+}
+#pdf-export-wrap {
+  position: static;
   width: 794px; /* 210mm ≈ A4 @96dpi */
   background: #fff;
-  pointer-events: none;
 }
 #pdf-export-wrap .proposal-doc {
   width: 794px;

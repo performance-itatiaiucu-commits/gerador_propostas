@@ -214,7 +214,6 @@ function buildPreview(){
     if(taxId.value) html+=`<div><span class="kv-key">CNPJ/CPF</span><div>${escapeHtml(taxId.value)}</div></div>`;
     if(address.value) html+=`<div><span class="kv-key">Endereço</span><div>${escapeHtml(address.value)}</div></div>`;
     if(city.value || stateEl.value) html+=`<div><span class="kv-key">Cidade/UF</span><div>${escapeHtml(city.value + (city.value && stateEl.value ? '/' : '') + stateEl.value)}</div></div>`;
-    if(notes.value) html+=`<div><span class="kv-key">Observações</span><div>${escapeHtml(notes.value)}</div></div>`;
     html+='</div>';
   }
   additionalInfo.innerHTML = html;
@@ -223,7 +222,10 @@ function buildPreview(){
   const existing = document.querySelector('.payment-info-section');
   if(existing) existing.remove();
   let paymentText = paymentMethod.value || '—';
-  if(paymentMethod.value==='Faturamento' && billingDaysInput.value) paymentText = `Faturamento em ${billingDaysInput.value} dias`;
+  if(paymentMethod.value==='Faturamento' && billingDaysInput.value.trim()){
+    const billingTerm = billingDaysInput.value.trim();
+    paymentText = `Faturamento em ${billingTerm}${/dias?$/i.test(billingTerm) ? '' : ' dias'}`;
+  }
   if(paymentMethod.value || leadTime.value){
     const sec = `<div class="doc-kv payment-info-section" style="margin-top:10px"><div><span class="kv-key">Forma de Pagamento</span><div>${escapeHtml(paymentText)}</div></div><div><span class="kv-key">Prazo de Entrega</span><div>${escapeHtml(leadTime.value || 'A combinar')}</div></div></div>`;
     additionalInfo.insertAdjacentHTML('afterend', sec);
@@ -339,34 +341,49 @@ clearDraftBtn.addEventListener('click', ()=>{
 });
 
 /* PDF Download - exporta clone em largura A4 fixa (evita cortes e layout responsivo) */
+function waitForImages(root, timeout=2000){
+  const pending = $$('img', root).filter(img=> !img.complete);
+  if(!pending.length) return Promise.resolve();
+
+  return Promise.race([
+    Promise.all(pending.map(img=> new Promise(resolve=>{
+      img.addEventListener('load', resolve, {once:true});
+      img.addEventListener('error', resolve, {once:true});
+    }))),
+    new Promise(resolve=> setTimeout(resolve, timeout))
+  ]);
+}
+
 async function exportPDF(){
   buildPreview();
+
+  if(typeof window.html2pdf !== 'function'){
+    throw new Error('Biblioteca html2pdf não foi carregada. Verifique a conexão com a internet.');
+  }
 
   const filename = `Proposta-${(company.value||'Cliente').replace(/[^a-zA-Z0-9]/g,'_')}-${currentDocNumber}.pdf`;
 
   // Garante que a fonte Inter esteja carregada antes do canvas (evita fonte errada no PDF)
   try { await Promise.race([document.fonts.ready, new Promise(r=>setTimeout(r,1500))]); } catch(_){}
 
-  // Aguarda a logo do cliente terminar de carregar, se houver
-  if(clientLogoData && pd_client_logo && !pd_client_logo.complete){
-    await new Promise(resolve=>{
-      const done=()=>resolve();
-      pd_client_logo.addEventListener('load', done, {once:true});
-      pd_client_logo.addEventListener('error', done, {once:true});
-      setTimeout(done, 1200);
-    });
-  }
+  // O elemento enviado ao html2pdf não pode ser o mesmo elemento posicionado fora da tela.
+  // O html2pdf clona a origem em seu próprio container; se a origem mantiver left:-10000px,
+  // a cópia também fica fora do canvas e o arquivo resultante sai em branco.
+  const sandbox = document.createElement('div');
+  sandbox.id = 'pdf-export-sandbox';
+  sandbox.setAttribute('aria-hidden', 'true');
 
-  // Cria um container fora da tela com largura fixa A4 (794px ≈ 210mm) e clona o documento.
-  // Isso desacopla o PDF do layout responsivo (coluna de 560px / sticky), que causava
-  // dimensionamento incorreto e conteúdo cortado entre páginas.
   const wrap = document.createElement('div');
   wrap.id = 'pdf-export-wrap';
   const clone = proposalDoc.cloneNode(true);
   clone.removeAttribute('id');
   clone.querySelectorAll('[id]').forEach(el=> el.removeAttribute('id'));
   wrap.appendChild(clone);
-  document.body.appendChild(wrap);
+  sandbox.appendChild(wrap);
+  document.body.appendChild(sandbox);
+
+  // Aguarda todas as imagens do documento exportado, inclusive a marca corporativa.
+  await waitForImages(wrap);
 
   const opt = {
     margin: 8,
@@ -376,25 +393,27 @@ async function exportPDF(){
       scale: 2,
       useCORS: true,
       backgroundColor: '#ffffff',
-      windowWidth: 1200, // força layout desktop (duas colunas) independente da tela
+      windowWidth: 1200, // força layout desktop independente da tela
+      scrollX: 0,
+      scrollY: 0,
       logging: false
     },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak: {
-      mode: ['avoid-all', 'css', 'legacy'],
+      mode: ['css', 'legacy'],
       avoid: ['.doc-header', '.doc-kv', '.pd-table tr', '.doc-totals', '.billing-info', '.billing-section', '.doc-accept', '.doc-signatures', '.sig-block']
     }
   };
 
   try{
-    await html2pdf().set(opt).from(wrap).save();
+    await window.html2pdf().set(opt).from(wrap).save();
     showNotification('PDF baixado: '+filename, 'success');
     // gera novo número para próxima proposta
     currentDocNumber = genDocNumber();
     docNumber.textContent = currentDocNumber;
     docNumberLabel.textContent = currentDocNumber;
   } finally {
-    if(wrap.parentNode) wrap.parentNode.removeChild(wrap);
+    sandbox.remove();
   }
 }
 
