@@ -1,5 +1,5 @@
 /**
- * Teste de integração da exportação PDF (v3.0.7).
+ * Teste de integração da exportação PDF (v3.0.8).
  *
  * Carrega o index.html e o src/js/script.js REAIS em um DOM (jsdom) e executa
  * o fluxo de download de verdade, com um html2pdf falso no lugar da biblioteca.
@@ -381,6 +381,22 @@ test('o PDF é configurado comprimido e com quebra condicional', async () => {
   // (comportamento seguro herdado da v3.0.6).
   assertEqual(opt.pagebreak.before.join(','), '.doc-signatures',
     'sem medidas confiáveis, a quebra protetora permanece');
+});
+
+test('as assinaturas usam Performance Ocupacional e a empresa cliente preenchida', async () => {
+  const { window } = await boot();
+  fillForm(window);
+
+  const perf = window.document.getElementById('pd_sig_performance');
+  const client = window.document.getElementById('pd_sig_client');
+  const fieldClient = window.document.getElementById('sigClient');
+  const fieldPerf = window.document.getElementById('sigPerformance');
+
+  assert(perf && client && fieldClient && fieldPerf, 'campos e bloco de assinatura devem existir');
+  assertEqual(fieldPerf.value, 'Performance Ocupacional', 'campo Performance Ocupacional pré-preenchido');
+  assertEqual(fieldClient.value, 'Empresa Teste LTDA', 'empresa cliente preenchida automaticamente');
+  assertEqual(perf.textContent, 'Performance Ocupacional', 'PDF: Performance Ocupacional');
+  assertEqual(client.textContent, 'Empresa Teste LTDA', 'PDF: empresa cliente');
 });
 
 test('a classe de quebra forçada é removida ao final', async () => {

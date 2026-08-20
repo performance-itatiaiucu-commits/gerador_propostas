@@ -37,6 +37,8 @@ const paymentMethod = $('#paymentMethod');
 const billingDays = $('#billingDays');
 const billingDaysInput = $('#billingDaysInput');
 const leadTime = $('#leadTime');
+const sigPerformance = $('#sigPerformance');
+const sigClient = $('#sigClient');
 
 const saveDraftBtn = $('#saveDraft');
 const loadDraftBtn = $('#loadDraft');
@@ -56,6 +58,7 @@ const pd_discount_value = $('#pd_discount_value');
 const pd_discount_pct = $('#pd_discount_pct');
 const pd_total = $('#pd_total');
 const additionalInfo = $('#additionalInfo');
+const pd_sig_performance = $('#pd_sig_performance');
 const pd_sig_client = $('#pd_sig_client');
 
 const previewEmpty = $('#previewEmpty');
@@ -158,6 +161,33 @@ paymentMethod.addEventListener('change', ()=>{ billingDays.style.display = payme
 billingDaysInput.addEventListener('input', ()=>{ if(previewUnlocked) buildPreview(); });
 leadTime.addEventListener('input', ()=>{ if(previewUnlocked) buildPreview(); });
 
+/* Assinaturas: empresa cliente é preenchida automaticamente com o campo Empresa.
+   Se o usuário editar o campo, o preenchimento automático pausa até o valor
+   voltar a coincidir (ou ficar vazio). */
+let sigClientManual = false;
+const DEFAULT_SIG_PERFORMANCE = 'Performance Ocupacional';
+function syncSigClientFromCompany(){
+  if(!sigClient) return;
+  if(sigClientManual) return;
+  sigClient.value = (company.value || '').trim();
+}
+if(company){
+  company.addEventListener('input', ()=>{
+    syncSigClientFromCompany();
+    if(previewUnlocked) buildPreview();
+  });
+}
+if(sigClient){
+  sigClient.addEventListener('input', ()=>{
+    const typed = sigClient.value.trim();
+    sigClientManual = typed !== '' && typed !== (company.value || '').trim();
+    if(previewUnlocked) buildPreview();
+  });
+}
+if(sigPerformance){
+  sigPerformance.addEventListener('input', ()=>{ if(previewUnlocked) buildPreview(); });
+}
+
 /* Logo upload com validação 2MB — 96px (máx. 270px) no preview e no PDF */
 let clientLogoData='';
 const MAX_LOGO_BYTES = 2*1024*1024;
@@ -197,14 +227,19 @@ notes.addEventListener('input', ()=>{ notesCount.textContent = notes.value.lengt
 
 /* Build preview (corporativo) */
 function buildPreview(){
+  syncSigClientFromCompany();
   pd_company.textContent = company.value || '—';
   pd_contact.textContent = (responsible.value ? responsible.value : '—') + (phone.value ? ' • '+phone.value : '');
   pd_contract.textContent = contractType.value || '—';
   pd_email.textContent = email.value || '—';
 
   applyClientLogo();
+  if(pd_sig_performance){
+    pd_sig_performance.textContent = (sigPerformance && sigPerformance.value.trim()) || DEFAULT_SIG_PERFORMANCE;
+  }
   if(pd_sig_client){
-    pd_sig_client.textContent = company.value.trim() || '—';
+    const clientName = (sigClient && sigClient.value.trim()) || (company.value || '').trim();
+    pd_sig_client.textContent = clientName || '—';
   }
 
   // additional info
@@ -291,7 +326,10 @@ saveDraftBtn.addEventListener('click', ()=>{
     meta:{savedAt:new Date().toISOString(), version:'3.0', docNumber: currentDocNumber},
     company:company.value, contractType:contractType.value, responsible:responsible.value, phone:phone.value,
     email:email.value, taxId:taxId.value, address:address.value, city:city.value, state:stateEl.value, notes:notes.value,
-    logo:clientLogoData, items:getItems(), discount:discountEl.value, payment:paymentMethod.value, billingDays:billingDaysInput.value, leadTime:leadTime.value
+    logo:clientLogoData, items:getItems(), discount:discountEl.value, payment:paymentMethod.value, billingDays:billingDaysInput.value, leadTime:leadTime.value,
+    sigPerformance: sigPerformance ? sigPerformance.value : DEFAULT_SIG_PERFORMANCE,
+    sigClient: sigClient ? sigClient.value : '',
+    sigClientManual: !!sigClientManual
   };
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -310,6 +348,17 @@ function loadDraftInternal(silent=false){
     company.value=d.company||''; contractType.value=d.contractType||''; responsible.value=d.responsible||''; phone.value=d.phone||'';
     email.value=d.email||''; taxId.value=d.taxId||''; address.value=d.address||''; city.value=d.city||''; stateEl.value=d.state||''; notes.value=d.notes||''; if(notesCount) notesCount.textContent=(d.notes||'').length;
     discountEl.value=d.discount||0; paymentMethod.value=d.payment||'À vista'; paymentMethod.dispatchEvent(new Event('change')); billingDaysInput.value=d.billingDays||''; leadTime.value=d.leadTime||'';
+    if(sigPerformance) sigPerformance.value = d.sigPerformance || DEFAULT_SIG_PERFORMANCE;
+    sigClientManual = !!d.sigClientManual;
+    if(sigClient){
+      if(d.sigClient != null && d.sigClient !== ''){
+        sigClient.value = d.sigClient;
+        sigClientManual = sigClientManual || (d.sigClient.trim() !== (d.company||'').trim());
+      } else {
+        sigClientManual = false;
+        sigClient.value = (d.company||'').trim();
+      }
+    }
     itemsBody.innerHTML=''; (d.items||[]).forEach(it=> createItemRow(it));
     if(d.logo){ clientLogoData=d.logo; applyClientLogo(); if(fileLabelText) fileLabelText.textContent='Logo carregada'; }
     else { clientLogoData=''; applyClientLogo(); }
@@ -674,7 +723,7 @@ function init(){
   lockPreview();
   setStep(1);
   updateTotals();
-  // tenta pré-preencher review sem liberar preview
+  syncSigClientFromCompany();
   updateReviewSummary();
 }
 document.addEventListener('DOMContentLoaded', init);
