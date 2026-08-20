@@ -40,7 +40,7 @@
   <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="src/css/style.css?v=3.0.7">
+  <link rel="stylesheet" href="src/css/style.css?v=3.0.8">
 
   <!-- PDF engine -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -247,6 +247,25 @@
                 <input id="leadTime" type="text" placeholder="Ex.: 15 dias úteis">
               </div>
 
+              <div class="sig-form">
+                <div class="card-head">
+                  <h4 class="sig-form-title"><i class="fa-solid fa-pen-nib"></i> Assinaturas</h4>
+                  <span class="card-badge neutral">No PDF</span>
+                </div>
+                <p class="card-desc">Nomes que aparecem abaixo das linhas de assinatura no documento. A empresa cliente é preenchida automaticamente.</p>
+                <div class="row">
+                  <div class="form-group">
+                    <label for="sigPerformance">Performance Ocupacional</label>
+                    <input id="sigPerformance" type="text" value="Performance Ocupacional" placeholder="Performance Ocupacional" autocomplete="off">
+                  </div>
+                  <div class="form-group">
+                    <label for="sigClient">Empresa cliente</label>
+                    <input id="sigClient" type="text" placeholder="Preenchida com a empresa da etapa Cliente" autocomplete="organization">
+                    <div class="small muted" style="margin-top:6px">Preenchida automaticamente com o campo Empresa. Você pode ajustar se necessário.</div>
+                  </div>
+                </div>
+              </div>
+
               <div class="muted-box">
                 <i class="fa-solid fa-circle-info"></i>
                 <div>
@@ -403,11 +422,13 @@
 
                   <div class="doc-signatures" id="docSignatures">
                     <div class="sig-block">
+                      <div class="sig-label">Assinatura</div>
                       <div class="sig-space" aria-hidden="true"></div>
                       <div class="sig-line" aria-hidden="true"></div>
-                      <div class="sig-name">Performance Ocupacional</div>
+                      <div class="sig-name" id="pd_sig_performance">Performance Ocupacional</div>
                     </div>
                     <div class="sig-block">
+                      <div class="sig-label">Assinatura</div>
                       <div class="sig-space" aria-hidden="true"></div>
                       <div class="sig-line" aria-hidden="true"></div>
                       <div class="sig-name" id="pd_sig_client">—</div>
@@ -429,11 +450,11 @@
 
     <footer class="app-footer">
       <div><strong>Grupo Performance Ocupacional</strong> — Gerador Corporativo 3.0 • Itaguara/MG (Doc/Treinamentos) • Itatiaiuçu/MG (Exames)</div>
-      <div class="small">Aplicativo criado por Filipe Goulart — Todos os direitos reservados • v3.0.7 • <span id="footerDate"></span></div>
+      <div class="small">Aplicativo criado por Filipe Goulart — Todos os direitos reservados • v3.0.8 • <span id="footerDate"></span></div>
     </footer>
   </div>
 
-  <script src="src/js/script.js?v=3.0.7"></script>
+  <script src="src/js/script.js?v=3.0.8"></script>
 </body>
 
 </html>

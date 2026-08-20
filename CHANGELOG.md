@@ -4,6 +4,23 @@ Baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e [SemVer
 
 ---
 
+## [3.0.8] — 2026-08-20 — Campos de assinatura (Performance Ocupacional e empresa cliente)
+
+### ✨ Adicionado
+- **Campos de assinatura na etapa Pagamento**: duas linhas no documento passam a ser configuráveis no formulário.
+  - **Performance Ocupacional** — editável, pré-preenchido com `Performance Ocupacional`.
+  - **Empresa cliente** — **preenchida automaticamente** com o nome da Empresa da etapa Cliente; pode ser ajustada se necessário.
+- No preview/PDF, cada bloco ganha o rótulo **Assinatura**, a linha para rubrica e o nome correspondente abaixo.
+
+### 🔄 Alterado
+- Rascunho v3 passa a persistir `sigPerformance`, `sigClient` e o flag de edição manual da empresa cliente.
+- Cache busting `?v=3.0.8` em `src/css/style.css` e `src/js/script.js`; rodapé com a nova versão.
+
+### ✅ Testes
+- Suíte atualizada para `v3.0.8`. Novos casos: campos no formulário, preenchimento automático da empresa cliente, nomes no bloco de assinatura do documento.
+
+---
+
 ## [3.0.7] — 2026-08-20 — Rodapé paginado e quebra inteligente das assinaturas
 
 ### ✨ Adicionado

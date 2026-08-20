@@ -234,6 +234,39 @@ textarea { min-height:96px; resize:vertical; }
   border-bottom: 1.5px solid var(--primary-dark);
   margin: 0 0 10px;
 }
+.sig-form {
+  margin: 4px 0 18px;
+  padding: 16px;
+  background: var(--primary-light);
+  border: 1px solid #dbe4f0;
+  border-radius: 12px;
+}
+.sig-form .card-head { margin-bottom: 4px; }
+.sig-form-title {
+  color: var(--primary);
+  font-size: 0.95rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sig-form-title i {
+  color: var(--primary);
+  background: #fff;
+  padding: 7px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+}
+.sig-form .card-desc { margin-bottom: 12px; }
+.sig-form .form-group { margin-bottom: 0; }
+.sig-label {
+  font-weight: 800;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 4px;
+}
 .sig-name {
   font-weight: 700;
   color: var(--primary);
