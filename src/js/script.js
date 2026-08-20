@@ -347,11 +347,13 @@ clearDraftBtn.addEventListener('click', ()=>{
    cair fora da área desenhada e o PDF sai em branco. Por isso exportamos o
    próprio #proposalDoc, apenas alargado temporariamente para a largura útil A4. */
 
-/* Largura útil A4 @96dpi: 210mm ≈ 794px menos as margens de 8mm de cada lado
-   (8mm ≈ 30,2px → ≈ 60,5px no total) ≈ 733px. Capturar na largura útil, e não
-   nos 794px da folha inteira, evita que o html2pdf reescale o canvas para caber
-   na área imprimível — reescala que cortava a lateral direita do documento. */
-const A4_CONTENT_WIDTH = 733;
+/* Largura útil A4 @96dpi: 210mm ≈ 794px menos as margens de 15mm de cada lado
+   (15mm ≈ 56,7px → ≈ 113,4px no total) ≈ 680px. Margens de 15mm deixam o
+   documento visualmente centralizado na folha A4 (enquadramento equilibrado).
+   Capturar na largura útil, e não nos 794px da folha inteira, evita que o
+   html2pdf reescale o canvas para caber na área imprimível — reescala que
+   cortava a lateral direita do documento. */
+const A4_CONTENT_WIDTH = 680;
 
 function waitForImages(root, timeout=2000){
   const pending = $$('img', root).filter(img=> !img.complete);
@@ -421,6 +423,21 @@ async function exportPDF(){
   document.body.classList.add('is-exporting-pdf');
   proposalDoc.classList.add('pdf-export-target');
 
+  // Correção da proporção A4 (v3.0.5): o html2pdf monta um overlay fixo e
+  // centraliza o container no meio da viewport REAL do navegador. Como o
+  // html2canvas recebe windowWidth/width iguais à largura útil A4, tudo que
+  // passasse dessa coluna era cortado do canvas — o PDF saía com o conteúdo
+  // espremido na metade esquerda da página. Este estilo fixa o container do
+  // html2pdf na coluna 0 (left:0), alinhando o clone à janela de captura e
+  // fazendo o documento ocupar a largura útil inteira.
+  const pdfLayoutFix = document.createElement('style');
+  pdfLayoutFix.id = 'html2pdf-layout-fix';
+  pdfLayoutFix.textContent = [
+    '.html2pdf__overlay{left:0!important;right:0!important}',
+    '.html2pdf__container{left:0!important;right:auto!important;margin:0!important}'
+  ].join('');
+  document.head.appendChild(pdfLayoutFix);
+
   // Rola até o topo do documento; scrollX/scrollY:0 abaixo só é coerente se a
   // página estiver de fato no topo quando o clone é montado.
   const prevScrollX = window.scrollX || window.pageXOffset || 0;
@@ -431,7 +448,7 @@ async function exportPDF(){
   await new Promise(r=> requestAnimationFrame(()=> requestAnimationFrame(r)));
 
   const opt = {
-    margin: 8,
+    margin: 15,
     filename,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
@@ -447,7 +464,13 @@ async function exportPDF(){
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak: {
       mode: ['css', 'legacy'],
-      avoid: ['.doc-header', '.doc-kv', '.pd-table tr', '.doc-totals', '.billing-info', '.billing-section', '.doc-accept', '.doc-signatures', '.sig-block']
+      // A tabela de itens NÃO entra no avoid: quando a tabela é grande, o plugin
+      // de quebra insere divs de padding dentro do <tbody> (HTML inválido) e o
+      // navegador os realoca, criando buracos enormes na página. Deixando a
+      // tabela quebrar naturalmente, o conteúdo flui e as páginas são bem
+      // aproveitadas. Blocos importantes (cabeçalho, totais, faturamento,
+      // aceite e assinaturas) continuam protegidos contra corte.
+      avoid: ['.doc-header', '.doc-kv', '.doc-totals', '.billing-info', '.billing-section', '.doc-accept', '.doc-signatures', '.sig-block']
     }
   };
 
@@ -467,6 +490,8 @@ async function exportPDF(){
     docNumber.textContent = currentDocNumber;
     docNumberLabel.textContent = currentDocNumber;
   } finally {
+    const fixEl = document.getElementById('html2pdf-layout-fix');
+    if(fixEl) fixEl.remove();
     proposalDoc.classList.remove('pdf-export-target');
     document.body.classList.remove('is-exporting-pdf');
     window.scrollTo(prevScrollX, prevScrollY);

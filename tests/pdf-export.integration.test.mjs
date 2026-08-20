@@ -1,5 +1,5 @@
 /**
- * Teste de integração da exportação PDF (v3.0.4).
+ * Teste de integração da exportação PDF (v3.0.5).
  *
  * Carrega o index.html e o src/js/script.js REAIS em um DOM (jsdom) e executa
  * o fluxo de download de verdade, com um html2pdf falso no lugar da biblioteca.
@@ -200,16 +200,16 @@ test('durante a captura o preview está visível e com o layout de exportação'
   assertEqual(snap.stickyDisplay, 'block', 'o painel do preview deve estar visível');
 });
 
-test('a largura útil A4 de 733px é enviada ao html2canvas', async () => {
+test('a largura útil A4 de 680px é enviada ao html2canvas', async () => {
   const { window, calls } = await boot();
   fillForm(window);
   await clickDownload(window);
 
   const opt = calls.set.find((o) => o && o.html2canvas);
   assert(opt, 'as opções do html2canvas devem ser configuradas');
-  assertEqual(opt.html2canvas.width, 733, 'width do html2canvas');
-  assertEqual(opt.html2canvas.windowWidth, 733, 'windowWidth do html2canvas');
-  assertEqual(opt.margin, 8, 'margem A4 em mm');
+  assertEqual(opt.html2canvas.width, 680, 'width do html2canvas');
+  assertEqual(opt.html2canvas.windowWidth, 680, 'windowWidth do html2canvas');
+  assertEqual(opt.margin, 15, 'margem A4 em mm');
   assertEqual(opt.jsPDF.format, 'a4', 'formato do jsPDF');
 });
 

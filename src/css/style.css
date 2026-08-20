@@ -291,7 +291,10 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   .doc-signatures { page-break-inside: avoid; }
   .sig-space { height: 88px; }
   .sig-line { width: 100%; border-bottom: 1.5px solid #0a1e32; }
-  .doc-header, .doc-kv, .doc-items, .pd-table tr, .doc-totals, .billing-info, .billing-section, .doc-accept, .sig-block {
+  /* v3.0.5: .doc-items e .pd-table tr ficam fora do page-break-inside também na
+     impressão do navegador (fallback) — evita empurrar a tabela inteira para a
+     próxima página quando ela é grande. */
+  .doc-header, .doc-kv, .doc-totals, .billing-info, .billing-section, .doc-accept, .sig-block {
     page-break-inside: avoid;
     break-inside: avoid;
   }
@@ -304,23 +307,26 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
    e o PDF sai em branco. Durante a exportação apenas fixamos a largura útil
    A4 no próprio #proposalDoc, que permanece na tela. */
 
-/* 210mm @96dpi ≈ 794px, menos 8mm de margem de cada lado (≈ 30px) ≈ 733px. */
+/* 210mm @96dpi ≈ 794px, menos 15mm de margem de cada lado (≈ 57px) ≈ 680px.
+   Margens de 15mm centralizam/enquadram o documento na folha A4. */
 #proposalDoc.pdf-export-target {
-  width: 733px;
+  width: 680px;
   max-width: none;
   margin: 0;
-  padding: 22px 26px 18px;
+  padding: 22px 24px 18px;
   box-shadow: none;
   border: none;
   border-top: 0;
   border-radius: 0;
   background: #fff;
 }
+/* v3.0.5: .doc-items e .pd-table tr foram REMOVIDOS do page-break-inside.
+   O plugin de quebra do html2pdf (modo css) lia esses estilos e insería divs
+   de padding dentro do <tbody> (HTML inválido) ou antes da tabela, criando
+   buracos de centenas de pixels no PDF. A tabela agora quebra naturalmente. */
 #proposalDoc.pdf-export-target .doc-header,
 #proposalDoc.pdf-export-target .doc-kv,
 #proposalDoc.pdf-export-target .payment-info-section,
-#proposalDoc.pdf-export-target .doc-items,
-#proposalDoc.pdf-export-target .pd-table tr,
 #proposalDoc.pdf-export-target .doc-totals,
 #proposalDoc.pdf-export-target .billing-info,
 #proposalDoc.pdf-export-target .billing-section,
