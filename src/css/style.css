@@ -297,25 +297,16 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   }
 }
 
-/* ---- Exportação PDF (clone em largura A4 fixa) ---- */
-/* Apenas o sandbox fica fora da tela. O #pdf-export-wrap é a origem clonada pelo
-   html2pdf e precisa permanecer em (0, 0), ou sua cópia será capturada em branco. */
-#pdf-export-sandbox {
-  position: fixed;
-  left: -10000px;
-  top: 0;
-  width: 794px;
-  height: 1px;
-  overflow: visible;
-  pointer-events: none;
-}
-#pdf-export-wrap {
-  position: static;
-  width: 794px; /* 210mm ≈ A4 @96dpi */
-  background: #fff;
-}
-#pdf-export-wrap .proposal-doc {
-  width: 794px;
+/* ---- Exportação PDF (captura direta do preview visível) ---- */
+/* Não existe sandbox fora da viewport: o html2canvas mede o elemento com
+   getBoundingClientRect() e repete essas coordenadas no clone interno, então
+   qualquer ancestral em `left:-10000px` empurra o desenho para fora do canvas
+   e o PDF sai em branco. Durante a exportação apenas fixamos a largura útil
+   A4 no próprio #proposalDoc, que permanece na tela. */
+
+/* 210mm @96dpi ≈ 794px, menos 8mm de margem de cada lado (≈ 30px) ≈ 733px. */
+#proposalDoc.pdf-export-target {
+  width: 733px;
   max-width: none;
   margin: 0;
   padding: 22px 26px 18px;
@@ -325,20 +316,24 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   border-radius: 0;
   background: #fff;
 }
-#pdf-export-wrap .doc-header,
-#pdf-export-wrap .doc-kv,
-#pdf-export-wrap .payment-info-section,
-#pdf-export-wrap .doc-items,
-#pdf-export-wrap .pd-table tr,
-#pdf-export-wrap .doc-totals,
-#pdf-export-wrap .billing-info,
-#pdf-export-wrap .billing-section,
-#pdf-export-wrap .doc-accept,
-#pdf-export-wrap .doc-signatures,
-#pdf-export-wrap .sig-block {
+#proposalDoc.pdf-export-target .doc-header,
+#proposalDoc.pdf-export-target .doc-kv,
+#proposalDoc.pdf-export-target .payment-info-section,
+#proposalDoc.pdf-export-target .doc-items,
+#proposalDoc.pdf-export-target .pd-table tr,
+#proposalDoc.pdf-export-target .doc-totals,
+#proposalDoc.pdf-export-target .billing-info,
+#proposalDoc.pdf-export-target .billing-section,
+#proposalDoc.pdf-export-target .doc-accept,
+#proposalDoc.pdf-export-target .doc-signatures,
+#proposalDoc.pdf-export-target .sig-block {
   page-break-inside: avoid;
   break-inside: avoid;
 }
+/* O preview sticky deslocaria o documento durante a captura; fixa no fluxo. */
+body.is-exporting-pdf .preview-sticky { position: static; }
+/* O overlay do html2pdf cobre a tela por instantes — evita o "flash" escuro. */
+body.is-exporting-pdf .html2pdf__overlay { opacity: 0 !important; }
 
 /* File input */
 .file-input-container{ position:relative; }
