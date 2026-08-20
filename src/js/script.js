@@ -618,7 +618,7 @@ async function exportPDF(){
       // via `mode: 'css'` e acaba injetando divs dentro do <tbody>,
       // criando buracos enormes. A tabela quebra naturalmente entre linhas
       // (seguro, pois cada linha é uma unidade completa de informação).
-      avoid: ['.doc-header', '.doc-kv', '.doc-totals', '.billing-info', '.billing-section', '.doc-accept', '.doc-signatures', '.sig-block', '.payment-info-section']
+      avoid: ['.doc-header', '.doc-kv', '.doc-totals', '.billing-info', '.billing-section', '.doc-accept', '.sig-form', '.doc-signatures', '.sig-block', '.payment-info-section']
     }
   };
 
