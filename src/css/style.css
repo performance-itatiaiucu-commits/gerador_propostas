@@ -217,6 +217,10 @@ textarea { min-height:96px; resize:vertical; }
   page-break-inside: avoid;
   break-inside: avoid;
 }
+/* Ajuste para quando .doc-signatures está dentro de .sig-form no preview/PDF */
+.sig-form .doc-signatures {
+  margin-top: 16px;
+}
 .sig-block {
   text-align: center;
   min-width: 0;
@@ -328,7 +332,7 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   /* v3.0.5: .doc-items e .pd-table tr ficam fora do page-break-inside também na
      impressão do navegador (fallback) — evita empurrar a tabela inteira para a
      próxima página quando ela é grande. */
-  .doc-header, .doc-kv, .doc-totals, .billing-info, .billing-section, .doc-accept, .sig-block {
+  .doc-header, .doc-kv, .doc-totals, .billing-info, .billing-section, .doc-accept, .sig-form, .sig-block {
     page-break-inside: avoid;
     break-inside: avoid;
   }
@@ -372,6 +376,7 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
 #proposalDoc.pdf-export-target .billing-info,
 #proposalDoc.pdf-export-target .billing-section,
 #proposalDoc.pdf-export-target .doc-accept,
+#proposalDoc.pdf-export-target .sig-form,
 #proposalDoc.pdf-export-target .doc-signatures,
 #proposalDoc.pdf-export-target .sig-block {
   page-break-inside: avoid;
