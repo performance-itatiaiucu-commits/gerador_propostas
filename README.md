@@ -61,7 +61,7 @@ Empresa: **Grupo Performance Ocupacional** — Saúde e Segurança Ocupacional.
 2. **Itens (2/4)** — adicione linhas, qtd e valor unit.; desconto % aplicado ao final.
 3. **Pagamento (3/4)** — forma (À vista, Cartão, PIX, Faturamento + dias) e prazo de entrega.
 4. **Revisar (4/4)** — resumo de 4 campos + callout de segurança. Clique em **`Carregar & Preview`** (topo ou no card). O painel à direita (desktop) ou abaixo (mobile) revela o documento A4.
-5. **`Baixar PDF`** — botão esverdeado habilitado após o preview. Gera e baixa o PDF nomeado. O documento inclui a **logo do cliente** (192 px, máx. 540 px) e **duas linhas de assinatura** tradicionais (Performance Ocupacional / empresa do cliente).
+5. **`Baixar PDF`** — botão esverdeado habilitado após o preview. Gera e baixa o PDF nomeado. O documento inclui a **logo do cliente** (96 px, máx. 270 px) e **duas linhas de assinatura** padronizadas (Performance Ocupacional / empresa do cliente).
 
 > **Atalhos:** `Salvar` persiste em localStorage. `Carregar & Preview` tenta carregar o rascunho v3 (fallback v1) **e** revela o preview. `Limpar` remove o rascunho (confirmação).
 
@@ -81,6 +81,7 @@ Empresa: **Grupo Performance Ocupacional** — Saúde e Segurança Ocupacional.
 ```
 gerador-proposta/
 ├── index.html              # v3.0 corporativo (preview controlado + Baixar PDF)
+├── push.sh                 # script para publicar a branch ativa no GitHub
 ├── src/
 │   ├── css/style.css       # tema navy corporativo
 │   ├── js/script.js        # lógica 3.0 (previewUnlocked, html2pdf, validação)
@@ -109,6 +110,18 @@ python -m http.server 8000
 ```
 
 Sem build. Abra `index.html` direto se preferir (CDNs requerem internet).
+
+---
+
+## 📤 Publicação no GitHub
+
+Para publicar as alterações da branch atual no repositório remoto:
+
+```bash
+./push.sh
+```
+
+O comando identifica a branch de trabalho atual e executa o envio (`git push -u origin <branch>`) com validação de estado.
 
 ---
 
