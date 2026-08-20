@@ -4,6 +4,21 @@ Baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e [SemVer
 
 ---
 
+## [3.0.5] — 2026-08-20 — Proporção A4 corrigida (conteúdo em largura total)
+
+### 🐛 Corrigido
+- **Proporção A4**: o PDF saía com o conteúdo **espremido na metade esquerda da página** (o documento não ocupava a largura do A4). Causa: o html2pdf monta um overlay fixo e **centraliza o container na viewport real do navegador**; como a captura usa `windowWidth: 733` (largura útil A4), tudo que passasse da coluna 733 era **cortado do canvas**. Correção: um estilo injetado durante a exportação fixa o container do html2pdf em `left: 0`, alinhando o clone à janela de captura — o documento agora ocupa os ~194 mm úteis do A4.
+- **Buracos gigantes entre seções**: o `page-break-inside: avoid` em `.doc-items`/`.pd-table tr` fazia o plugin de quebra de página do html2pdf inserir divs de padding de centenas de pixels (e HTML inválido dentro do `<tbody>`), deixando páginas quase vazias. A tabela de itens agora quebra naturalmente entre páginas; blocos críticos (cabeçalho, totais, faturamento, aceite e assinaturas) continuam protegidos contra corte.
+
+### 🔄 Alterado
+- Cache busting `?v=3.0.5` em `src/css/style.css` e `src/js/script.js`; rodapé com a nova versão.
+- O estilo de correção do layout é removido ao final da exportação (sucesso ou erro), sem efeitos colaterais no preview.
+
+### ✅ Testes
+- Suíte existente atualizada para `v3.0.5` (cache busting e rodapé).
+
+---
+
 ## [3.0.4] — 2026-08-20 — PDF em branco definitivamente corrigido
 
 ### 🐛 Corrigido

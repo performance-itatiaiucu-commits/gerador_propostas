@@ -316,11 +316,13 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   border-radius: 0;
   background: #fff;
 }
+/* v3.0.5: .doc-items e .pd-table tr foram REMOVIDOS do page-break-inside.
+   O plugin de quebra do html2pdf (modo css) lia esses estilos e insería divs
+   de padding dentro do <tbody> (HTML inválido) ou antes da tabela, criando
+   buracos de centenas de pixels no PDF. A tabela agora quebra naturalmente. */
 #proposalDoc.pdf-export-target .doc-header,
 #proposalDoc.pdf-export-target .doc-kv,
 #proposalDoc.pdf-export-target .payment-info-section,
-#proposalDoc.pdf-export-target .doc-items,
-#proposalDoc.pdf-export-target .pd-table tr,
 #proposalDoc.pdf-export-target .doc-totals,
 #proposalDoc.pdf-export-target .billing-info,
 #proposalDoc.pdf-export-target .billing-section,

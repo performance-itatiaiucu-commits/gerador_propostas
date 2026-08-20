@@ -1,5 +1,5 @@
 /**
- * Testes da correção do PDF em branco (v3.0.4).
+ * Testes da correção do PDF em branco (v3.0.5).
  *
  * Rodam sem dependências externas: um mini-runner + jsdom quando disponível.
  * Cobrem as cinco garantias da correção:
@@ -7,7 +7,7 @@
  *   2. não existe mais sandbox posicionado fora da viewport;
  *   3. o canvas é validado antes do download;
  *   4. a largura útil A4 é 733px;
- *   5. CSS e JS carregam com cache busting ?v=3.0.4.
+ *   5. CSS e JS carregam com cache busting ?v=3.0.5.
  *
  * Uso: node tests/pdf-export.test.mjs
  */
@@ -195,14 +195,43 @@ test('733px corresponde a A4 menos as margens configuradas', () => {
   assertMatch(js, /margin:\s*8/, 'a margem do html2pdf deve continuar em 8mm');
 });
 
-/* ---------- 5. cache busting ?v=3.0.4 ---------- */
+/* ---------- 4b. proporção A4 (v3.0.5) ---------- */
 
-test('o CSS é carregado com ?v=3.0.4', () => {
-  assertMatch(html, /href="src\/css\/style\.css\?v=3\.0\.4"/, 'cache busting do CSS');
+test('exportPDF injeta o fix de layout do container do html2pdf (left:0)', () => {
+  const body = js.slice(js.indexOf('async function exportPDF'));
+  assertMatch(body, /html2pdf-layout-fix/, 'o id do estilo de fix deve existir');
+  assertMatch(body, /\.html2pdf__container\s*\{left:\s*0!important/, 'o container deve ser fixado à esquerda');
+  assertMatch(body, /\.html2pdf__overlay\s*\{left:\s*0!important/, 'o overlay deve ser fixado à esquerda');
+  assertMatch(body, /getElementById\('html2pdf-layout-fix'\)/, 'o estilo deve ser removido ao final');
 });
 
-test('o JS é carregado com ?v=3.0.4', () => {
-  assertMatch(html, /src="src\/js\/script\.js\?v=3\.0\.4"/, 'cache busting do JS');
+test('o avoid de quebra não inclui mais .pd-table tr (evita divs inválidos no tbody)', () => {
+  const body = js.slice(js.indexOf('async function exportPDF'));
+  assertNoMatch(body, /\.pd-table tr/, 'a tabela não deve entrar no avoid de quebra');
+  assertMatch(body, /avoid:\s*\[[^\]]*\.doc-header/, 'os blocos críticos continuam protegidos');
+});
+
+test('o CSS de exportação não marca .doc-items/.pd-table tr com page-break-inside', () => {
+  // Extrai apenas blocos de regra (seletor + chaves + page-break-inside), sem comentários.
+  const rules = css.match(/#proposalDoc\.pdf-export-target[^{]*\{[^}]*page-break-inside:\s*avoid;[^}]*\}/g) || [];
+  assert(rules.length > 0, 'deve existir ao menos um bloco protegido no CSS de exportação');
+  rules.forEach((r) => {
+    assertNoMatch(r, /\.doc-items/, '.doc-items não pode ser evitado (causa buraco na página)');
+    assertNoMatch(r, /\.pd-table tr/, '.pd-table tr não pode ser evitado (div inválido no tbody)');
+  });
+  const combined = rules.join('');
+  assertMatch(combined, /\.doc-totals/, 'os totais continuam protegidos');
+  assertMatch(combined, /\.doc-accept/, 'o aceite continua protegido');
+});
+
+/* ---------- 5. cache busting ?v=3.0.5 ---------- */
+
+test('o CSS é carregado com ?v=3.0.5', () => {
+  assertMatch(html, /href="src\/css\/style\.css\?v=3\.0\.5"/, 'cache busting do CSS');
+});
+
+test('o JS é carregado com ?v=3.0.5', () => {
+  assertMatch(html, /src="src\/js\/script\.js\?v=3\.0\.5"/, 'cache busting do JS');
 });
 
 test('não restam referências sem versão aos assets locais', () => {
@@ -210,12 +239,12 @@ test('não restam referências sem versão aos assets locais', () => {
   assertNoMatch(html, /src="src\/js\/script\.js"/, 'JS sem query de versão');
 });
 
-test('o rodapé exibe a versão 3.0.4', () => {
-  assertMatch(html, /v3\.0\.4/, 'a versão visível deve ser 3.0.4');
+test('o rodapé exibe a versão 3.0.5', () => {
+  assertMatch(html, /v3\.0\.5/, 'a versão visível deve ser 3.0.5');
 });
 
-test('o CHANGELOG documenta a versão 3.0.4', () => {
-  assertMatch(read('CHANGELOG.md'), /##\s*\[3\.0\.4\]/, 'entrada 3.0.4 no CHANGELOG');
+test('o CHANGELOG documenta a versão 3.0.5', () => {
+  assertMatch(read('CHANGELOG.md'), /##\s*\[3\.0\.5\]/, 'entrada 3.0.5 no CHANGELOG');
 });
 
 /* ---------- integração em DOM real (jsdom, se disponível) ---------- */
@@ -255,8 +284,8 @@ test('[dom] index.html referencia CSS e JS versionados', async () => {
   const script = document.querySelector('script[src^="src/js/script.js"]');
   assert(link, 'o CSS local deve estar referenciado');
   assert(script, 'o JS local deve estar referenciado');
-  assertEqual(link.getAttribute('href'), 'src/css/style.css?v=3.0.4', 'href do CSS');
-  assertEqual(script.getAttribute('src'), 'src/js/script.js?v=3.0.4', 'src do JS');
+  assertEqual(link.getAttribute('href'), 'src/css/style.css?v=3.0.5', 'href do CSS');
+  assertEqual(script.getAttribute('src'), 'src/js/script.js?v=3.0.5', 'src do JS');
 });
 
 /* ---------- helpers ---------- */
@@ -321,7 +350,7 @@ const run = async () => {
   let pass = 0;
   const failures = [];
 
-  console.log('\n  Correção do PDF em branco — v3.0.4\n');
+  console.log('\n  Correção do PDF em branco — v3.0.5\n');
   for (const { name, fn } of tests) {
     try {
       await fn();
