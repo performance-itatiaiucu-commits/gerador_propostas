@@ -4,6 +4,21 @@ Baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e [SemVer
 
 ---
 
+## [3.0.3] — 2026-08-20 — Correção da exportação PDF
+
+### 🐛 Corrigido
+- **PDF em branco**: o elemento enviado ao `html2pdf` não herda mais o posicionamento `left: -10000px`. Apenas um sandbox externo fica fora da tela; a cópia capturada permanece na origem do canvas.
+- Removido o modo global `avoid-all` da paginação, que podia inserir páginas vazias; os blocos importantes continuam protegidos individualmente contra quebra.
+- A exportação agora aguarda todas as imagens do documento, incluindo a marca corporativa, antes da captura.
+- Observações marcadas como internas não são mais incluídas acidentalmente no documento.
+- O prazo de faturamento não repete mais a palavra “dias” quando ela já foi digitada.
+
+### 🛡️ Melhorado
+- Mensagem explícita quando a biblioteca `html2pdf` não está disponível.
+- Limpeza garantida do sandbox de exportação após sucesso ou falha na geração.
+
+---
+
 ## [3.0.2] — 2026-08-19 — Logo do cliente maior e assinaturas tradicionais
 
 ### 🔄 Alterado

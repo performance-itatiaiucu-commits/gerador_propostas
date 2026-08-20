@@ -90,7 +90,7 @@ O 3.0 bloqueia o preview até a última etapa para garantir proposta completa.
 |----------|-------|---------|
 | “Preencha campos obrigatórios” | Falta Empresa/Unidade/Responsável/Telefone ou nenhum item | Complete passos 1–2 |
 | Baixar PDF desabilitado | Preview ainda bloqueado | Revisar → Carregar & Preview |
-| PDF em branco / sem logo | Ad-block ou offline, ou logo >2 MB | Desative ad-block, use PNG ≤2 MB |
+| Gerador de PDF indisponível / sem logo | Ad-block ou offline, ou logo >2 MB | Desative ad-block, verifique a conexão e use PNG ≤2 MB |
 | Rascunho não carrega | LocalStorage desabilitado / privado | Habilite cookies/localStorage, tente outro navegador |
 | Total não fecha | Casas decimais | Corrigido com cálculo em centavos (v3) |
 

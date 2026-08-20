@@ -2,7 +2,7 @@
 
 ## Versão 3.0 Corporativa
 
-[![Version](https://img.shields.io/badge/version-3.0.2-0f2a44.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.0.3-0f2a44.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PDF](https://img.shields.io/badge/PDF-html2pdf-0e7a5a.svg)](#-download-em-pdf-corporativo)
 [![Status](https://img.shields.io/badge/status-corporativo-0f2a44.svg)](#)
@@ -133,7 +133,7 @@ Sem build. Abra `index.html` direto se preferir (CDNs requerem internet).
 |---------|-------|---------|
 | “Preencha campos obrigatórios” ao clicar Carregar | Faltam Empresa/Unidade/Responsável/Telefone ou nenhum item | Preencha passos 1–3 |
 | Baixar PDF desabilitado | Preview ainda bloqueado | Vá em Revisar → Carregar & Preview |
-| PDF em branco | html2pdf bloqueado por ad-block | Desative bloqueador, mantenha internet |
+| Gerador de PDF indisponível | CDN do html2pdf bloqueado por ad-block ou sem internet | Desative o bloqueador e verifique a conexão |
 | Logo não aparece | Arquivo >2 MB ou formato inválido | Use PNG/JPG ≤2 MB |
 
 ---
