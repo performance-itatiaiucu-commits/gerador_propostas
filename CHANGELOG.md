@@ -4,6 +4,28 @@ Baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e [SemVer
 
 ---
 
+## [3.0.7] — 2026-08-20 — Rodapé paginado e quebra inteligente das assinaturas
+
+### ✨ Adicionado
+- **Rodapé “Página X de Y” em todas as páginas do PDF**, junto com a identificação `Proposta Nº … • Grupo Performance Ocupacional`. O carimbo é feito com o jsPDF **entre a paginação e o salvamento** (`toPdf()` → `get('pdf')` → `save()`), único momento em que o total real de páginas é conhecido; fica dentro da margem de 15 mm e não sobrepõe o conteúdo capturado.
+- **Metadados do arquivo PDF** (`título`, `assunto`, `autor`, `criador`, `palavras-chave`) — o documento passa a se identificar corretamente no leitor de PDF e em buscas do cliente.
+
+### 🔄 Alterado
+- **Quebra antes das assinaturas agora é condicional**: até a 3.0.6 o bloco era *sempre* empurrado para uma página nova (`page-break-before: always` + `before: ['.doc-signatures']`), o que fazia propostas curtas terminarem com uma **folha quase vazia**. Agora `needsPageBreakBeforeSignatures()` mede o bloco com o layout de exportação já aplicado (680 px) e só força a quebra quando ele **não cabe** no espaço restante da página (altura útil ≈ 1008 px + 24 px de folga). A proteção contra corte no meio continua garantida pelo `page-break-inside: avoid`.
+- Mesma correção no **fallback de impressão nativa** (`@media print`): `break-inside: avoid` no lugar do `page-break-before: always`.
+- **PDF comprimido** (`jsPDF.compress: true`): arquivos menores para envio por e-mail/WhatsApp, sem perda visível.
+- A margem do html2pdf passou a usar a constante `PDF_MARGIN_MM`, compartilhada com o cálculo da largura útil e do rodapé (fim do número mágico duplicado).
+- Cache busting `?v=3.0.7` em `src/css/style.css` e `src/js/script.js`; rodapé com a nova versão.
+
+### 🐛 Corrigido
+- **`.gitignore` inutilizável**: o arquivo continha literalmente o texto `(empty)`. Agora ignora `node_modules/`, artefatos de editor/SO, logs e PDFs gerados em teste.
+
+### ✅ Testes
+- Suíte ampliada: rodapé paginado (numeração em todas as páginas, ordem `toPdf → carimbo → save`, tolerância a jsPDF sem `setProperties`), quebra condicional (cabe → sem quebra; não cabe → quebra; bloco maior que a página → sem quebra) e compressão do jsPDF.
+- O worker falso dos testes de integração ganhou `toPdf()`/`get('pdf')`, validando o carimbo no fluxo real em DOM.
+
+---
+
 ## [3.0.6] — 2026-08-20 — Documento centralizado na folha A4
 
 ### 🔄 Alterado

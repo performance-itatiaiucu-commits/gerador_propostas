@@ -355,6 +355,19 @@ clearDraftBtn.addEventListener('click', ()=>{
    cortava a lateral direita do documento. */
 const A4_CONTENT_WIDTH = 680;
 
+/* Geometria da folha em mm e a conversão px→mm derivada da largura de captura.
+   Serve para raciocinar sobre PAGINAÇÃO em pixels do preview: o html2pdf fatia
+   o canvas a cada "altura útil de página", então saber quantos px cabem em uma
+   página é o que permite decidir uma quebra com critério. */
+const A4_PAGE_WIDTH_MM = 210;
+const A4_PAGE_HEIGHT_MM = 297;
+const PDF_MARGIN_MM = 15;
+const MM_PER_PX = (A4_PAGE_WIDTH_MM - PDF_MARGIN_MM * 2) / A4_CONTENT_WIDTH; // 180mm / 680px
+/* Altura útil de uma página, já em pixels do documento capturado (≈1008px). */
+const A4_CONTENT_HEIGHT_PX = Math.floor((A4_PAGE_HEIGHT_MM - PDF_MARGIN_MM * 2) / MM_PER_PX);
+/* Folga para não colar o bloco no limite exato do corte. */
+const PAGE_FIT_TOLERANCE_PX = 24;
+
 function waitForImages(root, timeout=2000){
   const pending = $$('img', root).filter(img=> !img.complete);
   if(!pending.length) return Promise.resolve();
@@ -396,6 +409,76 @@ function assertCanvasHasContent(canvas){
   }
 
   throw new Error('O PDF sairia em branco: o preview não foi renderizado a tempo.');
+}
+
+/* Quebra inteligente antes das assinaturas (v3.0.7).
+   Até a v3.0.6 a seção de assinaturas era SEMPRE empurrada para uma página nova
+   (`page-break-before: always`). Isso protegia o bloco de ser cortado ao meio,
+   mas em propostas curtas gerava uma última página quase vazia — só com as duas
+   linhas de assinatura.
+   Agora medimos: se o bloco inteiro cabe no espaço que resta na página atual,
+   não há motivo para quebrar (o `page-break-inside: avoid` já impede o corte).
+   Só forçamos a quebra quando o bloco realmente não caberia. */
+function needsPageBreakBeforeSignatures(docEl, sigEl, pageHeightPx = A4_CONTENT_HEIGHT_PX){
+  if(!docEl || !sigEl || typeof sigEl.getBoundingClientRect !== 'function') return true;
+
+  const docRect = docEl.getBoundingClientRect();
+  const sigRect = sigEl.getBoundingClientRect();
+  const height = sigRect.height;
+  const top = sigRect.top - docRect.top;
+
+  // Sem medidas confiáveis (jsdom, display:none) mantemos o comportamento seguro.
+  if(!height || !isFinite(height) || !isFinite(top) || top < 0) return true;
+  // Bloco maior que uma página inteira: quebrar não resolveria nada.
+  if(height + PAGE_FIT_TOLERANCE_PX >= pageHeightPx) return false;
+
+  const usedOnCurrentPage = top % pageHeightPx;
+  const remaining = pageHeightPx - usedOnCurrentPage;
+  return remaining < height + PAGE_FIT_TOLERANCE_PX;
+}
+
+/* Rodapé paginado (v3.0.7): "Página X de Y" + identificação da proposta em
+   TODAS as páginas do PDF. Desenhado com o jsPDF depois da paginação (por isso
+   sabemos o total real de páginas) e dentro da margem de 15mm, sem sobrepor o
+   conteúdo capturado. Também grava os metadados do arquivo. */
+function stampPdfFooters(pdf, info = {}){
+  if(!pdf || !pdf.internal || typeof pdf.setPage !== 'function') return 0;
+
+  const total = typeof pdf.internal.getNumberOfPages === 'function'
+    ? pdf.internal.getNumberOfPages()
+    : (pdf.internal.pages ? pdf.internal.pages.length - 1 : 0);
+  if(!total) return 0;
+
+  const size = pdf.internal.pageSize || {};
+  const pageWidth = typeof size.getWidth === 'function' ? size.getWidth() : (size.width || A4_PAGE_WIDTH_MM);
+  const pageHeight = typeof size.getHeight === 'function' ? size.getHeight() : (size.height || A4_PAGE_HEIGHT_MM);
+  const baseline = pageHeight - PDF_MARGIN_MM / 2.5; // dentro da margem inferior
+  const left = info.leftText || 'Grupo Performance Ocupacional';
+
+  for(let page=1; page<=total; page++){
+    pdf.setPage(page);
+    try {
+      if(typeof pdf.setFont === 'function') pdf.setFont('helvetica', 'normal');
+      if(typeof pdf.setFontSize === 'function') pdf.setFontSize(7.5);
+      if(typeof pdf.setTextColor === 'function') pdf.setTextColor(120, 128, 140);
+      pdf.text(left, PDF_MARGIN_MM, baseline);
+      pdf.text(`Página ${page} de ${total}`, pageWidth - PDF_MARGIN_MM, baseline, { align: 'right' });
+    } catch(_){ /* rodapé é cosmético: nunca pode derrubar a exportação */ }
+  }
+
+  if(typeof pdf.setProperties === 'function'){
+    try {
+      pdf.setProperties({
+        title: info.title || 'Proposta Comercial',
+        subject: 'Proposta Comercial — Saúde e Segurança Ocupacional',
+        author: 'Grupo Performance Ocupacional',
+        creator: 'Gerador de Proposta — Grupo Performance Ocupacional',
+        keywords: 'proposta, comercial, performance ocupacional, sst'
+      });
+    } catch(_){ /* metadados são opcionais */ }
+  }
+
+  return total;
 }
 
 async function exportPDF(){
@@ -447,8 +530,18 @@ async function exportPDF(){
   // Deixa o browser aplicar o layout de exportação antes de medir/desenhar.
   await new Promise(r=> requestAnimationFrame(()=> requestAnimationFrame(r)));
 
+  // Decide a quebra antes das assinaturas COM O LAYOUT DE EXPORTAÇÃO JÁ APLICADO
+  // (a medida só vale a 680px de largura, que é como o documento será capturado).
+  const signaturesEl = document.getElementById('docSignatures');
+  const breakBeforeSignatures = needsPageBreakBeforeSignatures(proposalDoc, signaturesEl);
+  proposalDoc.classList.toggle('force-signature-break', breakBeforeSignatures);
+  if(breakBeforeSignatures){
+    // Reaplica o layout depois de ligar a regra de quebra.
+    await new Promise(r=> requestAnimationFrame(r));
+  }
+
   const opt = {
-    margin: 15,
+    margin: PDF_MARGIN_MM,
     filename,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
@@ -461,13 +554,16 @@ async function exportPDF(){
       scrollY: 0,
       logging: false
     },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    // compress reduz bastante o tamanho do arquivo enviado por e-mail/WhatsApp
+    // sem perda visível (a imagem já é JPEG de alta qualidade).
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
     pagebreak: {
       mode: ['css', 'legacy'],
-      // Seção que DEVE começar em uma nova página: assinaturas. Como é o
-      // último bloco da proposta, garante que seja sempre em uma página limpa,
-      // evitando que o campo de assinatura e carimbo fique órfão ou cortado.
-      before: ['.doc-signatures'],
+      // v3.0.7: a quebra antes das assinaturas deixou de ser incondicional.
+      // Ela só entra quando o bloco não cabe no que resta da página — assim
+      // nenhuma proposta curta termina com uma página quase vazia, e o bloco
+      // continua protegido de cortes pelo `avoid` abaixo.
+      before: breakBeforeSignatures ? ['.doc-signatures'] : [],
       // Blocos que NUNCA devem ser quebrados no meio. A tabela (`.pd-table`)
       // ficou de fora porque o plugin tenta aplicar `page-break-inside`
       // via `mode: 'css'` e acaba injetando divs dentro do <tbody>,
@@ -486,6 +582,16 @@ async function exportPDF(){
     const canvas = await worker.get('canvas');
     assertCanvasHasContent(canvas);
 
+    // Pagina o documento e carimba o rodapé "Página X de Y" em cada folha.
+    // Precisa acontecer entre toPdf() e save(): antes da paginação não existe
+    // total de páginas; depois de salvar já é tarde.
+    await worker.toPdf();
+    const pdf = await worker.get('pdf');
+    stampPdfFooters(pdf, {
+      title: `Proposta Comercial ${currentDocNumber} — ${company.value || 'Cliente'}`,
+      leftText: `Proposta Nº ${currentDocNumber} • Grupo Performance Ocupacional`
+    });
+
     await worker.save();
     showNotification('PDF baixado: '+filename, 'success');
     // gera novo número para próxima proposta
@@ -495,6 +601,7 @@ async function exportPDF(){
   } finally {
     const fixEl = document.getElementById('html2pdf-layout-fix');
     if(fixEl) fixEl.remove();
+    proposalDoc.classList.remove('force-signature-break');
     proposalDoc.classList.remove('pdf-export-target');
     document.body.classList.remove('is-exporting-pdf');
     window.scrollTo(prevScrollX, prevScrollY);

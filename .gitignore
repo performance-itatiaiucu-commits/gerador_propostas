@@ -1,1 +1,22 @@
-(empty)
+# Dependências (a suíte de testes usa jsdom opcionalmente: npm i -D jsdom)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Logs e temporários
+*.log
+tmp/
+.tmp/
+
+# Artefatos gerados (PDFs de teste da exportação)
+*.pdf

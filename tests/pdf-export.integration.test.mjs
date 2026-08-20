@@ -1,5 +1,5 @@
 /**
- * Teste de integração da exportação PDF (v3.0.5).
+ * Teste de integração da exportação PDF (v3.0.7).
  *
  * Carrega o index.html e o src/js/script.js REAIS em um DOM (jsdom) e executa
  * o fluxo de download de verdade, com um html2pdf falso no lugar da biblioteca.
@@ -54,11 +54,34 @@ function fakeCanvas({ blank = false, width = 1466, height = 2000 } = {}) {
   };
 }
 
+// jsPDF falso: registra as páginas carimbadas, os textos e os metadados.
+function fakePdf(pages = 2) {
+  const pdf = {
+    pagesVisited: [],
+    textsByPage: {},
+    properties: null,
+    current: 1,
+    internal: {
+      getNumberOfPages: () => pages,
+      pageSize: { getWidth: () => 210, getHeight: () => 297 }
+    },
+    setPage(n) { pdf.current = n; pdf.pagesVisited.push(n); },
+    setFont() {},
+    setFontSize() {},
+    setTextColor() {},
+    text(text, x, y, opts) {
+      (pdf.textsByPage[pdf.current] = pdf.textsByPage[pdf.current] || []).push({ text, x, y, opts });
+    },
+    setProperties(p) { pdf.properties = p; }
+  };
+  return pdf;
+}
+
 /**
  * Monta o DOM com o script real carregado e um html2pdf instrumentado.
  * `canvasFactory` decide o canvas devolvido por toCanvas().
  */
-async function boot({ canvasFactory = () => fakeCanvas(), failCanvas = false } = {}) {
+async function boot({ canvasFactory = () => fakeCanvas(), failCanvas = false, pdfPages = 2 } = {}) {
   const dom = new JSDOM(html, {
     url: 'https://example.com/',
     runScripts: 'dangerously',
@@ -80,7 +103,10 @@ async function boot({ canvasFactory = () => fakeCanvas(), failCanvas = false } =
     from: [],
     set: [],
     toCanvas: 0,
+    toPdf: 0,
     save: 0,
+    pdf: null,
+    order: [],
     // estado do DOM no instante da captura
     snapshotAtCapture: null,
     scrolls
@@ -114,13 +140,24 @@ async function boot({ canvasFactory = () => fakeCanvas(), failCanvas = false } =
       from(el) { calls.from.push(el); return worker; },
       async toCanvas() {
         calls.toCanvas++;
+        calls.order.push('toCanvas');
         record();
         if (failCanvas) throw new Error('falha simulada no html2canvas');
         canvas = canvasFactory();
         return worker;
       },
-      async get(key) { return key === 'canvas' ? canvas : undefined; },
-      async save() { calls.save++; return worker; }
+      async toPdf() {
+        calls.toPdf++;
+        calls.order.push('toPdf');
+        calls.pdf = fakePdf(pdfPages);
+        return worker;
+      },
+      async get(key) {
+        if (key === 'canvas') return canvas;
+        if (key === 'pdf') return calls.pdf;
+        return undefined;
+      },
+      async save() { calls.save++; calls.order.push('save'); return worker; }
     };
     return worker;
   }
@@ -287,6 +324,72 @@ test('exportar sem preview liberado não chama o html2pdf', async () => {
   await clickDownload(window);
   assertEqual(calls.from.length, 0, 'a exportação não deve iniciar com preview bloqueado');
   assertEqual(calls.save, 0, 'nada deve ser salvo');
+});
+
+test('todas as páginas do PDF recebem o rodapé "Página X de Y"', async () => {
+  const { window, calls } = await boot({ pdfPages: 3 });
+  fillForm(window);
+  await clickDownload(window);
+
+  assertEqual(calls.toPdf, 1, 'a paginação deve ser disparada uma vez');
+  assert(calls.pdf, 'o pdf paginado deve ser recuperado com get("pdf")');
+  assertEqual(calls.pdf.pagesVisited.join(','), '1,2,3', 'todas as páginas devem ser carimbadas');
+
+  [1, 2, 3].forEach((n) => {
+    const texts = (calls.pdf.textsByPage[n] || []).map((t) => t.text);
+    assert(texts.some((t) => t === `Página ${n} de 3`), `falta "Página ${n} de 3"`);
+    assert(texts.some((t) => /^Proposta Nº .+ • Grupo Performance Ocupacional$/.test(t)),
+      'falta a identificação da proposta no rodapé');
+  });
+});
+
+test('o carimbo acontece depois da paginação e antes de salvar', async () => {
+  const { window, calls } = await boot();
+  fillForm(window);
+  await clickDownload(window);
+  assertEqual(calls.order.join('>'), 'toCanvas>toPdf>save', 'ordem do pipeline de exportação');
+});
+
+test('o PDF sai com metadados preenchidos', async () => {
+  const { window, calls } = await boot();
+  fillForm(window);
+  await clickDownload(window);
+
+  const props = calls.pdf.properties;
+  assert(props, 'setProperties deve ser chamado');
+  assert(/Empresa Teste LTDA/.test(props.title), 'o título deve citar o cliente');
+  assertEqual(props.author, 'Grupo Performance Ocupacional', 'autor do arquivo');
+});
+
+test('canvas em branco não chega nem a paginar o PDF', async () => {
+  const { window, calls } = await boot({ canvasFactory: () => fakeCanvas({ blank: true }) });
+  fillForm(window);
+  await clickDownload(window);
+  assertEqual(calls.toPdf, 0, 'sem canvas válido não se pagina nada');
+  assertEqual(calls.save, 0, 'nada é salvo');
+});
+
+test('o PDF é configurado comprimido e com quebra condicional', async () => {
+  const { window, calls } = await boot();
+  fillForm(window);
+  await clickDownload(window);
+
+  const opt = calls.set.find((o) => o && o.jsPDF);
+  assertEqual(opt.jsPDF.compress, true, 'compress deve estar ligado');
+  assert(Array.isArray(opt.pagebreak.before), 'before deve ser uma lista');
+  // Em jsdom não há layout: a medida é inconclusiva e o fluxo mantém a quebra
+  // (comportamento seguro herdado da v3.0.6).
+  assertEqual(opt.pagebreak.before.join(','), '.doc-signatures',
+    'sem medidas confiáveis, a quebra protetora permanece');
+});
+
+test('a classe de quebra forçada é removida ao final', async () => {
+  const { window } = await boot();
+  fillForm(window);
+  await clickDownload(window);
+  const doc = window.document.getElementById('proposalDoc');
+  assert(!doc.classList.contains('force-signature-break'),
+    '.force-signature-break não pode vazar para o preview');
 });
 
 /* ---------- execução ---------- */

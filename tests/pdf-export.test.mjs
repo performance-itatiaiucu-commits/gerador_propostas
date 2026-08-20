@@ -1,5 +1,5 @@
 /**
- * Testes da correção do PDF em branco (v3.0.6).
+ * Testes da correção do PDF em branco (v3.0.7).
  *
  * Rodam sem dependências externas: um mini-runner + jsdom quando disponível.
  * Cobrem as cinco garantias da correção:
@@ -7,7 +7,7 @@
  *   2. não existe mais sandbox posicionado fora da viewport;
  *   3. o canvas é validado antes do download;
  *   4. a largura útil A4 é 680px (margens 15mm);
- *   5. CSS e JS carregam com cache busting ?v=3.0.6.
+ *   5. CSS e JS carregam com cache busting ?v=3.0.7.
  *
  * Uso: node tests/pdf-export.test.mjs
  */
@@ -192,10 +192,10 @@ test('680px corresponde a A4 menos as margens configuradas (15mm)', () => {
   const usable = A4_FULL - marginPx * 2;               // 680
   assert(Math.abs(usable - 680) <= 1,
     `a largura útil declarada (680px) deve bater com o cálculo A4 (${usable}px)`);
-  assertMatch(js, /margin:\s*15/, 'a margem do html2pdf deve ser 15mm');
+  assertMatch(js, /const PDF_MARGIN_MM\s*=\s*15/, 'a margem do html2pdf deve ser 15mm');
 });
 
-/* ---------- 4b. proporção A4 (v3.0.6) ---------- */
+/* ---------- 4b. proporção A4 (v3.0.7) ---------- */
 
 test('exportPDF injeta o fix de layout do container do html2pdf (left:0)', () => {
   const body = js.slice(js.indexOf('async function exportPDF'));
@@ -239,14 +239,14 @@ test('nenhuma regra do CSS marca .doc-items/.pd-table tr com page-break-inside',
   assertMatch(combined, /\.doc-accept/, 'o aceite continua protegido');
 });
 
-/* ---------- 5. cache busting ?v=3.0.6 ---------- */
+/* ---------- 5. cache busting ?v=3.0.7 ---------- */
 
-test('o CSS é carregado com ?v=3.0.6', () => {
-  assertMatch(html, /href="src\/css\/style\.css\?v=3\.0\.6"/, 'cache busting do CSS');
+test('o CSS é carregado com ?v=3.0.7', () => {
+  assertMatch(html, /href="src\/css\/style\.css\?v=3\.0\.7"/, 'cache busting do CSS');
 });
 
-test('o JS é carregado com ?v=3.0.6', () => {
-  assertMatch(html, /src="src\/js\/script\.js\?v=3\.0\.6"/, 'cache busting do JS');
+test('o JS é carregado com ?v=3.0.7', () => {
+  assertMatch(html, /src="src\/js\/script\.js\?v=3\.0\.7"/, 'cache busting do JS');
 });
 
 test('não restam referências sem versão aos assets locais', () => {
@@ -254,15 +254,165 @@ test('não restam referências sem versão aos assets locais', () => {
   assertNoMatch(html, /src="src\/js\/script\.js"/, 'JS sem query de versão');
 });
 
-test('o rodapé exibe a versão 3.0.6', () => {
-  assertMatch(html, /v3\.0\.6/, 'a versão visível deve ser 3.0.6');
+test('o rodapé exibe a versão 3.0.7', () => {
+  assertMatch(html, /v3\.0\.7/, 'a versão visível deve ser 3.0.7');
 });
 
-test('o CHANGELOG documenta a versão 3.0.6', () => {
-  assertMatch(read('CHANGELOG.md'), /##\s*\[3\.0\.6\]/, 'entrada 3.0.6 no CHANGELOG');
+test('o CHANGELOG documenta a versão 3.0.7', () => {
+  assertMatch(read('CHANGELOG.md'), /##\s*\[3\.0\.7\]/, 'entrada 3.0.7 no CHANGELOG');
+});
+
+/* ---------- 6. rodapé paginado e quebra condicional (v3.0.7) ---------- */
+
+test('existe a função de carimbo do rodapé paginado', () => {
+  assertMatch(js, /function stampPdfFooters\(pdf, info/,
+    'stampPdfFooters precisa existir');
+});
+
+test('o rodapé é carimbado entre toPdf() e save()', () => {
+  const body = js.slice(js.indexOf('async function exportPDF'));
+  const idxToPdf = body.indexOf('worker.toPdf()');
+  const idxStamp = body.indexOf('stampPdfFooters(pdf');
+  const idxSave = body.indexOf('worker.save()');
+  assert(idxToPdf > -1, 'a paginação precisa ser disparada com toPdf()');
+  assert(idxStamp > -1, 'o rodapé precisa ser carimbado');
+  assert(idxToPdf < idxStamp, 'sem toPdf() não existe total de páginas para carimbar');
+  assert(idxStamp < idxSave, 'o carimbo precisa ocorrer ANTES do save()');
+});
+
+test('o carimbo escreve "Página X de Y" em TODAS as páginas', () => {
+  const stamp = loadFn('stampPdfFooters', ['PDF_MARGIN_MM', 'A4_PAGE_WIDTH_MM', 'A4_PAGE_HEIGHT_MM']);
+  const pdf = makeFakePdf(3);
+  const total = stamp(pdf, { leftText: 'Proposta Nº PC-2026-0007' });
+
+  assertEqual(total, 3, 'o total de páginas deve ser devolvido');
+  assertEqual(pdf.pagesVisited.join(','), '1,2,3', 'todas as páginas devem ser visitadas');
+  [1, 2, 3].forEach((n) => {
+    const texts = pdf.textsByPage[n] || [];
+    assert(texts.some((t) => t.text === `Página ${n} de 3`),
+      `a página ${n} deve receber "Página ${n} de 3" (recebeu: ${JSON.stringify(texts.map((t) => t.text))})`);
+    assert(texts.some((t) => /Proposta Nº PC-2026-0007/.test(t.text)),
+      `a página ${n} deve identificar a proposta`);
+  });
+});
+
+test('o rodapé fica dentro da folha A4 (não invade nem estoura a margem)', () => {
+  const stamp = loadFn('stampPdfFooters', ['PDF_MARGIN_MM', 'A4_PAGE_WIDTH_MM', 'A4_PAGE_HEIGHT_MM']);
+  const pdf = makeFakePdf(1);
+  stamp(pdf, {});
+  const texts = pdf.textsByPage[1];
+  texts.forEach((t) => {
+    assert(t.y > 297 - 15 && t.y < 297,
+      `o rodapé deve ficar na margem inferior (y=${t.y})`);
+    assert(t.x >= 15 && t.x <= 210 - 15,
+      `o rodapé deve respeitar as margens laterais (x=${t.x})`);
+  });
+});
+
+test('o carimbo grava os metadados do PDF', () => {
+  const stamp = loadFn('stampPdfFooters', ['PDF_MARGIN_MM', 'A4_PAGE_WIDTH_MM', 'A4_PAGE_HEIGHT_MM']);
+  const pdf = makeFakePdf(1);
+  stamp(pdf, { title: 'Proposta Comercial PC-1 — ACME' });
+  assert(pdf.properties, 'setProperties deve ser chamado');
+  assertMatch(pdf.properties.title, /Proposta Comercial/, 'título do arquivo');
+  assertEqual(pdf.properties.author, 'Grupo Performance Ocupacional', 'autor do arquivo');
+});
+
+test('o carimbo nunca derruba a exportação (jsPDF mínimo ou com erro)', () => {
+  const stamp = loadFn('stampPdfFooters', ['PDF_MARGIN_MM', 'A4_PAGE_WIDTH_MM', 'A4_PAGE_HEIGHT_MM']);
+  assertEqual(stamp(null, {}), 0, 'pdf ausente deve ser ignorado');
+  assertEqual(stamp({}, {}), 0, 'pdf sem internal deve ser ignorado');
+
+  // jsPDF sem setProperties e com text() que lança: não pode propagar erro.
+  const hostile = {
+    internal: { getNumberOfPages: () => 2, pageSize: { width: 210, height: 297 } },
+    setPage() {},
+    text() { throw new Error('sem suporte'); }
+  };
+  assertEqual(stamp(hostile, {}), 2, 'o fluxo continua mesmo se o texto falhar');
+});
+
+test('a quebra antes das assinaturas é condicional (função de medida)', () => {
+  const body = js.slice(js.indexOf('async function exportPDF'));
+  assertMatch(js, /function needsPageBreakBeforeSignatures/,
+    'a decisão de quebra precisa ser calculada');
+  assertMatch(body, /before:\s*breakBeforeSignatures\s*\?\s*\['\.doc-signatures'\]\s*:\s*\[\]/,
+    'o before só deve conter as assinaturas quando a quebra for necessária');
+  assertNoMatch(body, /before:\s*\['\.doc-signatures'\]/,
+    'a quebra incondicional da v3.0.6 foi substituída');
+});
+
+test('a medida decide certo: cabe → sem quebra; não cabe → quebra', () => {
+  const fits = loadFn('needsPageBreakBeforeSignatures', ['A4_CONTENT_HEIGHT_PX', 'PAGE_FIT_TOLERANCE_PX']);
+  const PAGE = 1008;
+  const doc = { getBoundingClientRect: () => ({ top: 0 }) };
+  const sigAt = (top, height) => ({ getBoundingClientRect: () => ({ top, height }) });
+
+  // Proposta curta: assinaturas a 500px do topo, bloco de 200px → sobram 508px.
+  assertEqual(fits(doc, sigAt(500, 200), PAGE), false, 'cabendo na página, não deve quebrar');
+  // Assinaturas quase no fim da página: sobram 58px para um bloco de 200px.
+  assertEqual(fits(doc, sigAt(950, 200), PAGE), true, 'sem espaço, deve quebrar');
+  // Segunda página: 1200 % 1008 = 192px usados, sobram 816px.
+  assertEqual(fits(doc, sigAt(1200, 200), PAGE), false, 'a conta vale para qualquer página');
+  // Bloco maior que a folha inteira: quebrar não resolveria.
+  assertEqual(fits(doc, sigAt(300, 1200), PAGE), false, 'bloco gigante não ganha quebra inútil');
+  // Sem medidas confiáveis, mantém o comportamento seguro.
+  assertEqual(fits(doc, sigAt(0, 0), PAGE), true, 'sem altura medida, quebra por segurança');
+  assertEqual(fits(doc, null, PAGE), true, 'sem elemento, quebra por segurança');
+});
+
+test('a altura útil da página bate com o A4 (297mm − 2×15mm)', () => {
+  const m = js.match(/const A4_CONTENT_HEIGHT_PX\s*=\s*Math\.floor\(([^;]+)\);/);
+  assert(m, 'A4_CONTENT_HEIGHT_PX deve ser derivada, não um número mágico');
+  const mmPerPx = (210 - 15 * 2) / 680;
+  const expected = Math.floor((297 - 15 * 2) / mmPerPx);
+  assert(Math.abs(expected - 1008) <= 2, `altura útil esperada ≈1008px (calculado ${expected})`);
+});
+
+test('o CSS só quebra a página com a classe .force-signature-break', () => {
+  assertMatch(css, /#proposalDoc\.pdf-export-target\.force-signature-break \.doc-signatures\s*\{[^}]*page-break-before:\s*always/,
+    'a quebra deve depender da classe aplicada pelo JS');
+  const unconditional = stripComments(css)
+    .match(/#proposalDoc\.pdf-export-target \.doc-signatures\s*\{[^}]*\}/g) || [];
+  unconditional.forEach((r) => {
+    assertNoMatch(r, /page-break-before:\s*always/,
+      'não pode restar quebra incondicional antes das assinaturas');
+  });
+  assertMatch(js, /classList\.toggle\('force-signature-break'/, 'o JS liga/desliga a classe');
+  assertMatch(js, /classList\.remove\('force-signature-break'\)/, 'a classe deve ser limpa no finally');
+});
+
+test('a impressão nativa não desperdiça uma folha com as assinaturas', () => {
+  // Recorta apenas o bloco @media print (o CSS de exportação vem depois dele).
+  const printStart = css.indexOf('@media print');
+  const printBlock = css.slice(printStart, css.indexOf('#proposalDoc.pdf-export-target', printStart));
+  const rule = stripComments(printBlock).match(/\.doc-signatures\s*\{[^}]*\}/g) || [];
+  rule.forEach((r) => {
+    assertNoMatch(r, /page-break-before:\s*always/,
+      'o fallback de impressão também deixou de forçar página nova');
+  });
+});
+
+test('o PDF é gerado comprimido', () => {
+  const body = js.slice(js.indexOf('async function exportPDF'));
+  assertMatch(body, /jsPDF:\s*\{[^}]*compress:\s*true/, 'compress: true reduz o tamanho do arquivo');
+});
+
+test('a margem do PDF usa a constante compartilhada', () => {
+  const body = js.slice(js.indexOf('async function exportPDF'));
+  assertMatch(body, /margin:\s*PDF_MARGIN_MM/, 'a margem deve vir da constante');
+  assertMatch(js, /const PDF_MARGIN_MM\s*=\s*15/, 'PDF_MARGIN_MM = 15mm');
+});
+
+test('o .gitignore ignora node_modules e artefatos locais', () => {
+  const ignore = read('.gitignore');
+  assertNoMatch(ignore, /^\(empty\)$/m, 'o placeholder "(empty)" foi substituído por regras reais');
+  assertMatch(ignore, /^node_modules\/$/m, 'node_modules deve ser ignorado (jsdom dos testes)');
+  assertMatch(ignore, /\.DS_Store/, 'artefatos de SO devem ser ignorados');
 });
 
 /* ---------- integração em DOM real (jsdom, se disponível) ---------- */
+
 
 test('[dom] o documento exportado fica dentro da viewport com 680px', async () => {
   const dom = await makeDom();
@@ -299,8 +449,8 @@ test('[dom] index.html referencia CSS e JS versionados', async () => {
   const script = document.querySelector('script[src^="src/js/script.js"]');
   assert(link, 'o CSS local deve estar referenciado');
   assert(script, 'o JS local deve estar referenciado');
-  assertEqual(link.getAttribute('href'), 'src/css/style.css?v=3.0.6', 'href do CSS');
-  assertEqual(script.getAttribute('src'), 'src/js/script.js?v=3.0.6', 'src do JS');
+  assertEqual(link.getAttribute('href'), 'src/css/style.css?v=3.0.7', 'href do CSS');
+  assertEqual(script.getAttribute('src'), 'src/js/script.js?v=3.0.7', 'src do JS');
 });
 
 /* ---------- helpers ---------- */
@@ -308,18 +458,73 @@ test('[dom] index.html referencia CSS e JS versionados', async () => {
 // Extrai assertCanvasHasContent do script real e a avalia isoladamente,
 // para testar a lógica de verdade em vez de uma reimplementação.
 function loadCanvasValidator() {
-  const start = js.indexOf('function assertCanvasHasContent');
-  assert(start > -1, 'assertCanvasHasContent não encontrada no script');
-  // Encontra o fim da função equilibrando chaves.
+  return loadFn('assertCanvasHasContent');
+}
+
+// Extrai uma função do script real (pelo nome) e a avalia isolada, junto com as
+// constantes de que ela depende. Testa o código de produção, não uma cópia.
+function loadFn(name, constants = []) {
+  const src = extractFn(name);
+  const seen = new Set();
+  const consts = constants.map((c) => extractConst(c, seen)).join('\n');
+  // eslint-disable-next-line no-new-func
+  return new Function(`${consts}\n${src}\n; return ${name};`)();
+}
+
+function extractFn(name) {
+  const start = js.indexOf(`function ${name}(`);
+  assert(start > -1, `${name} não encontrada no script`);
+
+  // Pula a lista de parâmetros: valores default como `info = {}` têm chaves
+  // próprias e enganariam o contador do corpo da função.
+  let i = js.indexOf('(', start);
+  let parens = 0;
+  for (; i < js.length; i++) {
+    if (js[i] === '(') parens++;
+    else if (js[i] === ')') { parens--; if (parens === 0) { i++; break; } }
+  }
+
   let depth = 0, end = -1, started = false;
-  for (let i = start; i < js.length; i++) {
+  for (; i < js.length; i++) {
     if (js[i] === '{') { depth++; started = true; }
     else if (js[i] === '}') { depth--; if (started && depth === 0) { end = i + 1; break; } }
   }
-  assert(end > -1, 'não foi possível delimitar assertCanvasHasContent');
-  const src = js.slice(start, end);
-  // eslint-disable-next-line no-new-func
-  return new Function(`${src}; return assertCanvasHasContent;`)();
+  assert(end > -1, `não foi possível delimitar ${name}`);
+  return js.slice(start, end);
+}
+
+function extractConst(name, seen = new Set()) {
+  if (seen.has(name)) return '';
+  seen.add(name);
+  const m = js.match(new RegExp(`const ${name}\\s*=[^;]+;`));
+  assert(m, `constante ${name} não encontrada`);
+  // Constantes podem depender de outras: resolve recursivamente as conhecidas.
+  const deps = ['A4_PAGE_WIDTH_MM', 'A4_PAGE_HEIGHT_MM', 'PDF_MARGIN_MM', 'A4_CONTENT_WIDTH', 'MM_PER_PX']
+    .filter((d) => d !== name && new RegExp(`\\b${d}\\b`).test(m[0]));
+  return [...deps.map((d) => extractConst(d, seen)), m[0]].filter(Boolean).join('\n');
+}
+
+// jsPDF falso: registra páginas visitadas, textos e metadados.
+function makeFakePdf(pages = 1) {
+  const pdf = {
+    pagesVisited: [],
+    textsByPage: {},
+    properties: null,
+    current: 1,
+    internal: {
+      getNumberOfPages: () => pages,
+      pageSize: { getWidth: () => 210, getHeight: () => 297 }
+    },
+    setPage(n) { pdf.current = n; pdf.pagesVisited.push(n); },
+    setFont() {},
+    setFontSize() {},
+    setTextColor() {},
+    text(text, x, y, opts) {
+      (pdf.textsByPage[pdf.current] = pdf.textsByPage[pdf.current] || []).push({ text, x, y, opts });
+    },
+    setProperties(p) { pdf.properties = p; }
+  };
+  return pdf;
 }
 
 // Remove comentários /* */ e // para que asserções olhem só o código efetivo.
@@ -365,7 +570,7 @@ const run = async () => {
   let pass = 0;
   const failures = [];
 
-  console.log('\n  Correção do PDF em branco — v3.0.6\n');
+  console.log('\n  Correção do PDF em branco — v3.0.7\n');
   for (const { name, fn } of tests) {
     try {
       await fn();

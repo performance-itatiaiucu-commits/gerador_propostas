@@ -16,7 +16,7 @@
 O Gerador 3.0 Corporativo substitui o fluxo livre da v2.1 por um **fluxo governado**:
 
 - **Preview bloqueado até a Revisão**: evita impressão de rascunhos incompletos e garante consistência visual.
-- **Baixar PDF** no lugar de **Imprimir**: arquivo nomeado `Proposta-{Cliente}-{Nº}.pdf`, formato A4, pronto para envio ao cliente.
+- **Baixar PDF** no lugar de **Imprimir**: arquivo nomeado `Proposta-{Cliente}-{Nº}.pdf`, formato A4 (margens de 15 mm), **rodapé “Página X de Y”** em todas as folhas, metadados preenchidos e compressão ativa — pronto para envio ao cliente.
 - **Identidade corporativa**: paleta navy `#0f2a44`, tipografia Inter, barra de status, número de documento e selo “CORPORATIVO”.
 
 Empresa: **Grupo Performance Ocupacional** — Saúde e Segurança Ocupacional.
@@ -44,7 +44,7 @@ Empresa: **Grupo Performance Ocupacional** — Saúde e Segurança Ocupacional.
 **Problemas da v2.1 corrigidos:**
 - `window.print()` com `innerHTML` + `reload` perdia estado não salvo → trocado por `html2pdf` com canvasA4, sem reload.
 - Preview “vivo” gerava PDFs incompletos → fluxo controlado com `previewUnlocked` flag e validação de obrigatórios + itens.
-- Sem paginação A4 confiável → `html2pdf` com `margin 8mm`, `scale:2`, `pagebreak: css/legacy`.
+- Sem paginação A4 confiável → `html2pdf` com `margin 15mm`, `scale:2`, `pagebreak: css/legacy`, quebra antes das assinaturas **medida sob demanda** (só quando o bloco não cabe na folha) e rodapé paginado carimbado via jsPDF.
 - Logo do Drive + CDN sem fallback → logo local `src/assets/Logotipo.png` + validação de upload.
 - JS monolítico sem estados → separação lógica: `buildPreview()` puro, `revealPreview()` governado, `updateTotals()` reativo.
 
@@ -166,7 +166,7 @@ branco, que deve **abortar** o download. Eles usam `jsdom`; sem ele instalado
 | Baixar PDF desabilitado | Preview ainda bloqueado | Vá em Revisar → Carregar & Preview |
 | Gerador de PDF indisponível | CDN do html2pdf bloqueado por ad-block ou sem internet | Desative o bloqueador e verifique a conexão |
 | Logo não aparece | Arquivo >2 MB ou formato inválido | Use PNG/JPG ≤2 MB |
-| PDF sai em branco | Versão antiga em cache no navegador | Recarregue com Ctrl+Shift+R (os assets já usam `?v=3.0.6`) |
+| PDF sai em branco | Versão antiga em cache no navegador | Recarregue com Ctrl+Shift+R (os assets já usam `?v=3.0.7`) |
 | “O PDF sairia em branco” | O preview não terminou de renderizar | Aguarde o preview carregar e tente novamente |
 
 ---
