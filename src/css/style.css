@@ -299,10 +299,12 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
     page-break-inside: avoid;
     break-inside: avoid;
   }
-  /* Garante que as assinaturas comecem em página limpa também na impressão */
+  /* v3.0.7: na impressão nativa do navegador o `break-inside: avoid` já empurra
+     o bloco inteiro para a próxima página quando ele não cabe. Forçar
+     `page-break-before: always` desperdiçava uma folha em propostas curtas. */
   .doc-signatures {
-    page-break-before: always;
-    break-before: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 }
 
@@ -342,10 +344,12 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   page-break-inside: avoid;
   break-inside: avoid;
 }
-/* A seção de assinaturas sempre começa em uma nova página para garantir
-   que o bloco de assinatura e carimbo não seja separado do restante do documento
-   por uma quebra de página. O JS `before: ['.doc-signatures']` reforça. */
-#proposalDoc.pdf-export-target .doc-signatures {
+/* v3.0.7: a quebra antes das assinaturas virou CONDICIONAL. O JS mede o bloco
+   com o layout de exportação aplicado e só liga `.force-signature-break` quando
+   ele não cabe no espaço restante da página — antes disso, uma proposta curta
+   terminava com uma folha quase vazia só para as assinaturas. O corte no meio do
+   bloco continua impossível por causa do `page-break-inside: avoid` acima. */
+#proposalDoc.pdf-export-target.force-signature-break .doc-signatures {
   page-break-before: always;
   break-before: page;
 }
