@@ -1,5 +1,5 @@
 /**
- * Testes da correção do PDF em branco (v3.0.8).
+ * Testes da correção do PDF em branco (v3.0.9).
  *
  * Rodam sem dependências externas: um mini-runner + jsdom quando disponível.
  * Cobrem as cinco garantias da correção:
@@ -7,7 +7,7 @@
  *   2. não existe mais sandbox posicionado fora da viewport;
  *   3. o canvas é validado antes do download;
  *   4. a largura útil A4 é 680px (margens 15mm);
- *   5. CSS e JS carregam com cache busting ?v=3.0.8.
+ *   5. CSS e JS carregam com cache busting ?v=3.0.9.
  *
  * Uso: node tests/pdf-export.test.mjs
  */
@@ -195,7 +195,7 @@ test('680px corresponde a A4 menos as margens configuradas (15mm)', () => {
   assertMatch(js, /const PDF_MARGIN_MM\s*=\s*15/, 'a margem do html2pdf deve ser 15mm');
 });
 
-/* ---------- 4b. proporção A4 (v3.0.8) ---------- */
+/* ---------- 4b. proporção A4 (v3.0.9) ---------- */
 
 test('exportPDF injeta o fix de layout do container do html2pdf (left:0)', () => {
   const body = js.slice(js.indexOf('async function exportPDF'));
@@ -239,14 +239,14 @@ test('nenhuma regra do CSS marca .doc-items/.pd-table tr com page-break-inside',
   assertMatch(combined, /\.doc-accept/, 'o aceite continua protegido');
 });
 
-/* ---------- 5. cache busting ?v=3.0.8 ---------- */
+/* ---------- 5. cache busting ?v=3.0.9 ---------- */
 
-test('o CSS é carregado com ?v=3.0.8', () => {
-  assertMatch(html, /href="src\/css\/style\.css\?v=3\.0\.8"/, 'cache busting do CSS');
+test('o CSS é carregado com ?v=3.0.9', () => {
+  assertMatch(html, /href="src\/css\/style\.css\?v=3\.0\.9"/, 'cache busting do CSS');
 });
 
-test('o JS é carregado com ?v=3.0.8', () => {
-  assertMatch(html, /src="src\/js\/script\.js\?v=3\.0\.8"/, 'cache busting do JS');
+test('o JS é carregado com ?v=3.0.9', () => {
+  assertMatch(html, /src="src\/js\/script\.js\?v=3\.0\.9"/, 'cache busting do JS');
 });
 
 test('não restam referências sem versão aos assets locais', () => {
@@ -254,16 +254,16 @@ test('não restam referências sem versão aos assets locais', () => {
   assertNoMatch(html, /src="src\/js\/script\.js"/, 'JS sem query de versão');
 });
 
-test('o rodapé exibe a versão 3.0.8', () => {
-  assertMatch(html, /v3\.0\.8/, 'a versão visível deve ser 3.0.8');
+test('o rodapé exibe a versão 3.0.9', () => {
+  assertMatch(html, /v3\.0\.9/, 'a versão visível deve ser 3.0.9');
 });
 
-test('o CHANGELOG documenta a versão 3.0.8', () => {
-  assertMatch(read('CHANGELOG.md'), /##\s*\[3\.0\.8\]/, 'entrada 3.0.8 no CHANGELOG');
+test('o CHANGELOG documenta a versão 3.0.9', () => {
+  assertMatch(read('CHANGELOG.md'), /##\s*\[3\.0\.9\]/, 'entrada 3.0.9 no CHANGELOG');
 });
 
 
-/* ---------- 5b. campos de assinatura (v3.0.8) ---------- */
+/* ---------- 5b. campos de assinatura (v3.0.9) ---------- */
 
 test('o formulário tem campos de assinatura para Performance Ocupacional e empresa cliente', () => {
   assertMatch(html, /id="sigPerformance"/, 'campo Performance Ocupacional');
@@ -275,6 +275,13 @@ test('o documento tem duas linhas de assinatura com os nomes configuráveis', ()
   assertMatch(html, /id="pd_sig_performance"/, 'nome Performance Ocupacional no documento');
   assertMatch(html, /id="pd_sig_client"/, 'nome da empresa cliente no documento');
   assertMatch(html, /id="docSignatures"/, 'bloco de assinaturas');
+});
+
+test('o PDF mantém as duas assinaturas lado a lado mesmo no viewport de 680px', () => {
+  const exportRule = css.match(/#proposalDoc\.pdf-export-target \.doc-signatures\s*\{[^}]*\}/);
+  assert(exportRule, 'deve existir uma regra específica para as assinaturas no alvo do PDF');
+  assertMatch(exportRule[0], /grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
+    'o breakpoint mobile não pode empilhar e ocultar a assinatura do cliente no PDF');
 });
 
 test('a empresa cliente é preenchida automaticamente a partir do campo Empresa', () => {
@@ -294,7 +301,7 @@ test('o rascunho persiste os campos de assinatura', () => {
   assertMatch(js, /sigClient:\s*sigClient/, 'salva empresa cliente');
 });
 
-/* ---------- 6. rodapé paginado e quebra condicional (v3.0.8) ---------- */
+/* ---------- 6. rodapé paginado e quebra condicional (v3.0.9) ---------- */
 
 test('existe a função de carimbo do rodapé paginado', () => {
   assertMatch(js, /function stampPdfFooters\(pdf, info/,
@@ -481,8 +488,8 @@ test('[dom] index.html referencia CSS e JS versionados', async () => {
   const script = document.querySelector('script[src^="src/js/script.js"]');
   assert(link, 'o CSS local deve estar referenciado');
   assert(script, 'o JS local deve estar referenciado');
-  assertEqual(link.getAttribute('href'), 'src/css/style.css?v=3.0.8', 'href do CSS');
-  assertEqual(script.getAttribute('src'), 'src/js/script.js?v=3.0.8', 'src do JS');
+  assertEqual(link.getAttribute('href'), 'src/css/style.css?v=3.0.9', 'href do CSS');
+  assertEqual(script.getAttribute('src'), 'src/js/script.js?v=3.0.9', 'src do JS');
 });
 
 /* ---------- helpers ---------- */
@@ -602,7 +609,7 @@ const run = async () => {
   let pass = 0;
   const failures = [];
 
-  console.log('\n  Correção do PDF em branco — v3.0.8\n');
+  console.log('\n  Correção do PDF em branco — v3.0.9\n');
   for (const { name, fn } of tests) {
     try {
       await fn();
