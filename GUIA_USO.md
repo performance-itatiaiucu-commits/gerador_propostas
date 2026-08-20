@@ -70,8 +70,8 @@ O 3.0 bloqueia o preview até a última etapa para garantir proposta completa.
 - Papel A4, retrato, margens padrão.
 - Cores e logos preservados; tabelas com quebra automática.
 - Nome do arquivo usa Empresa (sanitizada) + nº do documento da barra de status.
-- **Logo do cliente** aparece ao lado do nome da empresa (192 px de altura, até 540 px).
-- **Assinaturas** no final do documento, no formato tradicional: linha larga com espaço para rubrica a caneta e, abaixo, **Performance Ocupacional** e o **nome da empresa** preenchido na etapa Cliente.
+- **Logo do cliente** aparece ao lado do nome da empresa (96 px de altura, até 270 px).
+- **Assinaturas** no final do documento, no formato padronizado: linha de assinatura com espaço para rubrica e, abaixo, **Performance Ocupacional** e o **nome da empresa** preenchido na etapa Cliente.
 
 ---
 

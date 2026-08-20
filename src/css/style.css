@@ -182,10 +182,10 @@ textarea { min-height:96px; resize:vertical; }
 .kv-key { font-weight:800; color:var(--muted); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px; }
 .kv-value, .kv-val { display:flex; align-items:center; gap:12px; font-size:0.92rem; font-weight:500; flex-wrap:wrap; }
 .client-logo {
-  height: 192px;
+  height: 96px;
   width: auto;
-  max-width: 540px;
-  max-height: 192px;
+  max-width: 270px;
+  max-height: 96px;
   border-radius: 8px;
   object-fit: contain;
   object-position: left center;
@@ -212,9 +212,10 @@ textarea { min-height:96px; resize:vertical; }
   grid-template-columns: 1fr 1fr;
   column-gap: 40px;
   row-gap: 36px;
-  margin-top: 48px;
+  margin-top: 40px;
   padding: 8px 0 4px;
   page-break-inside: avoid;
+  break-inside: avoid;
 }
 .sig-block {
   text-align: center;
@@ -224,7 +225,7 @@ textarea { min-height:96px; resize:vertical; }
   align-items: stretch;
 }
 .sig-space {
-  height: 88px;
+  height: 64px;
 }
 .sig-line {
   width: 100%;
@@ -287,9 +288,9 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   .layout{ display:block; }
   .preview-column{ width:100%; }
   .proposal-doc{ box-shadow:none; border:none; padding:0; border-radius:0; }
-  .client-logo.is-visible { display: inline-block !important; height: 192px; max-width: 540px; max-height: 192px; }
+  .client-logo.is-visible { display: inline-block !important; height: 96px; max-width: 270px; max-height: 96px; }
   .doc-signatures { page-break-inside: avoid; }
-  .sig-space { height: 88px; }
+  .sig-space { height: 64px; }
   .sig-line { width: 100%; border-bottom: 1.5px solid #0a1e32; }
   /* v3.0.5: .doc-items e .pd-table tr ficam fora do page-break-inside também na
      impressão do navegador (fallback) — evita empurrar a tabela inteira para a
