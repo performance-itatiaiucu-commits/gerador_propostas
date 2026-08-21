@@ -4,6 +4,23 @@ Baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e [SemVer
 
 ---
 
+## [3.0.11] — 2026-08-21 — Assinaturas do preview passam a valer no PDF (motor de render atualizado)
+
+### 🐛 Corrigido
+- **As assinaturas configuradas não apareciam no PDF baixado**: o preview mostrava os dois blocos (rótulo, linha para rubrica e nome), mas o PDF final saía sem as linhas de assinatura e sem o bloco da empresa cliente. Causa raiz: o `html2pdf.js` 0.10.1 carregado do CDN embute o **html2canvas 1.0.0 (2021)**, que **não renderiza colunas de CSS Grid** — a grade `.doc-signatures` (2 colunas) perdia a segunda coluna inteira e as linhas de rubrica. A troca do bundle para o **0.14.0** (que embute o **html2canvas 1.4.1**) faz o PDF renderizar exatamente o que o preview mostra: as duas linhas de assinatura lado a lado e os nomes configurados (**Performance Ocupacional** e **empresa cliente**) abaixo delas.
+- **Grades de informações do cliente colapsavam no PDF**: a janela de captura do html2canvas tem 680px de largura, o que ativava o breakpoint responsivo de 900px e empilhava **todas** as grades `.doc-kv` do documento (dados do cliente, CNPJ/Endereço/Cidade-UF e Forma de Pagamento/Prazo de Entrega) em uma coluna — o PDF divergia do preview exibido na tela. A v3.0.9 já protegia a grade `.doc-signatures`; agora a mesma garantia (`grid-template-columns: repeat(2, minmax(0,1fr))`) cobre `.doc-kv` no alvo de exportação e no fallback de impressão nativa.
+- Verificação ponta a ponta em navegador real: o PDF gerado pelo fluxo de download efetivo contém as duas linhas de assinatura (traços de 558px lado a lado na largura útil) com os nomes configurados abaixo, tanto em propostas curtas (assinaturas na mesma página) quanto em propostas longas com paginação e quebra forçada antes do cartão; rodapé “Página X de Y” e metadados seguem íntegros com o jsPDF do novo bundle.
+
+### 🔄 Alterado
+- `html2pdf.js` no CDN: `0.10.1` → **`0.14.0`** (cdnjs). O plugin de quebra de páginas é idêntico entre as versões — todo o ajuste fino de paginação das v3.0.7–3.0.10 permanece válido; muda apenas o motor de captura (html2canvas 1.0.0 → 1.4.1) e o jsPDF (2.x → 4.x, APIs usadas pelo carimbo de rodapé verificadas).
+- Cache busting `?v=3.0.11` em `src/css/style.css` e `src/js/script.js`; rodapé com a nova versão.
+
+### ✅ Testes
+- Novos casos de regressão: o `index.html` referencia o bundle 0.14.0 (e nunca mais 0.10.x, cujo motor descartava colunas de grid), e o CSS de exportação/impressão mantém `.doc-kv` em duas colunas.
+- Suíte atualizada para `v3.0.11`.
+
+---
+
 ## [3.0.10] — 2026-08-21 — Quebra de página: cartão de assinaturas intacto e tabela protegida
 
 ### 🐛 Corrigido

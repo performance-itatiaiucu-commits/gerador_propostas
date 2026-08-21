@@ -239,14 +239,14 @@ test('nenhuma regra do CSS marca .doc-items/.pd-table tr com page-break-inside',
   assertMatch(combined, /\.doc-accept/, 'o aceite continua protegido');
 });
 
-/* ---------- 5. cache busting ?v=3.0.10 ---------- */
+/* ---------- 5. cache busting ?v=3.0.11 ---------- */
 
-test('o CSS é carregado com ?v=3.0.10', () => {
-  assertMatch(html, /href="src\/css\/style\.css\?v=3\.0\.10"/, 'cache busting do CSS');
+test('o CSS é carregado com ?v=3.0.11', () => {
+  assertMatch(html, /href="src\/css\/style\.css\?v=3\.0\.11"/, 'cache busting do CSS');
 });
 
-test('o JS é carregado com ?v=3.0.10', () => {
-  assertMatch(html, /src="src\/js\/script\.js\?v=3\.0\.10"/, 'cache busting do JS');
+test('o JS é carregado com ?v=3.0.11', () => {
+  assertMatch(html, /src="src\/js\/script\.js\?v=3\.0\.11"/, 'cache busting do JS');
 });
 
 test('não restam referências sem versão aos assets locais', () => {
@@ -254,12 +254,12 @@ test('não restam referências sem versão aos assets locais', () => {
   assertNoMatch(html, /src="src\/js\/script\.js"/, 'JS sem query de versão');
 });
 
-test('o rodapé exibe a versão 3.0.10', () => {
-  assertMatch(html, /v3\.0\.10/, 'a versão visível deve ser 3.0.10');
+test('o rodapé exibe a versão 3.0.11', () => {
+  assertMatch(html, /v3\.0\.11/, 'a versão visível deve ser 3.0.11');
 });
 
-test('o CHANGELOG documenta a versão 3.0.10', () => {
-  assertMatch(read('CHANGELOG.md'), /##\s*\[3\.0\.10\]/, 'entrada 3.0.10 no CHANGELOG');
+test('o CHANGELOG documenta a versão 3.0.11', () => {
+  assertMatch(read('CHANGELOG.md'), /##\s*\[3\.0\.11\]/, 'entrada 3.0.11 no CHANGELOG');
 });
 
 
@@ -282,6 +282,30 @@ test('o PDF mantém as duas assinaturas lado a lado mesmo no viewport de 680px',
   assert(exportRule, 'deve existir uma regra específica para as assinaturas no alvo do PDF');
   assertMatch(exportRule[0], /grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
     'o breakpoint mobile não pode empilhar e ocultar a assinatura do cliente no PDF');
+});
+
+/* ---------- 5c. assinaturas visíveis no PDF (v3.0.11) ---------- */
+
+test('o bundle do html2pdf é o 0.14.0 — o 0.10.x embute html2canvas 1.0.0, que descarta colunas de grid (assinaturas somem do PDF)', () => {
+  assertMatch(html, /cdnjs\.cloudflare\.com\/ajax\/libs\/html2pdf\.js\/0\.14\.0\/html2pdf\.bundle\.min\.js/,
+    'o script deve apontar para o bundle 0.14.0 (html2canvas 1.4.1 embutido)');
+  assertNoMatch(html, /html2pdf\.js\/0\.10\./,
+    'a linha 0.10.x embute html2canvas 1.0.0 (2021), que não renderiza a segunda coluna da grade de assinaturas');
+});
+
+test('o PDF mantém as grades de informações do cliente em duas colunas (v3.0.11)', () => {
+  const exportRule = css.match(/#proposalDoc\.pdf-export-target \.doc-kv\s*\{[^}]*\}/);
+  assert(exportRule, 'deve existir uma regra específica para .doc-kv no alvo do PDF');
+  assertMatch(exportRule[0], /grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
+    'a janela de captura de 680px ativa o breakpoint de 900px — sem esta regra, CNPJ/Endereço/Cidade e Pagamento/Prazo empilham no PDF');
+});
+
+test('a impressão nativa também mantém .doc-kv em duas colunas (v3.0.11)', () => {
+  const printBlock = css.slice(css.indexOf('@media print'));
+  const rule = printBlock.match(/\.doc-kv\s*\{[^}]*\}/);
+  assert(rule, '.doc-kv deve ser reafirmado no bloco de impressão');
+  assertMatch(rule[0], /grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/,
+    'a folha A4 cai no breakpoint responsivo — as duas colunas precisam ser mantidas na impressão');
 });
 
 test('a empresa cliente é preenchida automaticamente a partir do campo Empresa', () => {
@@ -554,8 +578,8 @@ test('[dom] index.html referencia CSS e JS versionados', async () => {
   const script = document.querySelector('script[src^="src/js/script.js"]');
   assert(link, 'o CSS local deve estar referenciado');
   assert(script, 'o JS local deve estar referenciado');
-  assertEqual(link.getAttribute('href'), 'src/css/style.css?v=3.0.10', 'href do CSS');
-  assertEqual(script.getAttribute('src'), 'src/js/script.js?v=3.0.10', 'src do JS');
+  assertEqual(link.getAttribute('href'), 'src/css/style.css?v=3.0.11', 'href do CSS');
+  assertEqual(script.getAttribute('src'), 'src/js/script.js?v=3.0.11', 'src do JS');
 });
 
 /* ---------- helpers ---------- */

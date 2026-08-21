@@ -2,7 +2,7 @@
 
 ## Versão 3.0 Corporativa
 
-[![Version](https://img.shields.io/badge/version-3.0.10-0f2a44.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.0.11-0f2a44.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PDF](https://img.shields.io/badge/PDF-html2pdf-0e7a5a.svg)](#-download-em-pdf-corporativo)
 [![Status](https://img.shields.io/badge/status-corporativo-0f2a44.svg)](#)
@@ -166,7 +166,7 @@ branco, que deve **abortar** o download. Eles usam `jsdom`; sem ele instalado
 | Baixar PDF desabilitado | Preview ainda bloqueado | Vá em Revisar → Carregar & Preview |
 | Gerador de PDF indisponível | CDN do html2pdf bloqueado por ad-block ou sem internet | Desative o bloqueador e verifique a conexão |
 | Logo não aparece | Arquivo >2 MB ou formato inválido | Use PNG/JPG ≤2 MB |
-| PDF sai em branco | Versão antiga em cache no navegador | Recarregue com Ctrl+Shift+R (os assets já usam `?v=3.0.10`) |
+| PDF sai em branco | Versão antiga em cache no navegador | Recarregue com Ctrl+Shift+R (os assets já usam `?v=3.0.11`) |
 | “O PDF sairia em branco” | O preview não terminou de renderizar | Aguarde o preview carregar e tente novamente |
 
 ---
@@ -182,4 +182,4 @@ MIT — veja `LICENSE`.
 **Filipe Goulart** — Gerador de Propostas  
 **Grupo Performance Ocupacional** — Itaguara/MG & Itatiaiuçu/MG
 
-*Última atualização: 21/08/2026 — v3.0.10 Corporativa*
+*Última atualização: 21/08/2026 — v3.0.11 Corporativa*

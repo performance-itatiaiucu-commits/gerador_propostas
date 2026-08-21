@@ -335,6 +335,10 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   }
   .sig-space { height: 64px; }
   .sig-line { width: 100%; border-bottom: 1.5px solid #0a1e32; }
+  /* v3.0.11: a folha A4 também cai no breakpoint responsivo de 900px — as
+     grades de informações do cliente precisam das duas colunas na impressão,
+     igual ao preview e ao PDF (mesma garantia das assinaturas). */
+  .doc-kv { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   /* v3.0.5: .doc-items e .pd-table tr ficam fora do page-break-inside também na
      impressão do navegador (fallback) — evita empurrar a tabela inteira para a
      próxima página quando ela é grande. */
@@ -400,6 +404,14 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 40px;
   row-gap: 0;
+}
+/* v3.0.11: o mesmo breakpoint de 900px derrubava TODAS as grades .doc-kv do
+   documento (dados do cliente, CNPJ/Endereço/Cidade e Forma de Pagamento) para
+   uma coluna dentro da janela de captura de 680px — o PDF saía com essas seções
+   empilhadas, diferentes do preview. A regra reafirma as duas colunas do layout
+   de tela no alvo de exportação (mesmo padrão da garantia das assinaturas). */
+#proposalDoc.pdf-export-target .doc-kv {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 /* v3.0.7: a quebra antes das assinaturas virou CONDICIONAL. O JS mede o bloco
    com o layout de exportação aplicado e só liga `.force-signature-break` quando
