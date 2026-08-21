@@ -1,5 +1,5 @@
 /**
- * Testes da correção do PDF em branco (v3.0.9).
+ * Testes da correção do PDF em branco (v3.0.10).
  *
  * Rodam sem dependências externas: um mini-runner + jsdom quando disponível.
  * Cobrem as cinco garantias da correção:
@@ -7,7 +7,7 @@
  *   2. não existe mais sandbox posicionado fora da viewport;
  *   3. o canvas é validado antes do download;
  *   4. a largura útil A4 é 680px (margens 15mm);
- *   5. CSS e JS carregam com cache busting ?v=3.0.9.
+ *   5. CSS e JS carregam com cache busting ?v=3.0.10.
  *
  * Uso: node tests/pdf-export.test.mjs
  */
@@ -195,7 +195,7 @@ test('680px corresponde a A4 menos as margens configuradas (15mm)', () => {
   assertMatch(js, /const PDF_MARGIN_MM\s*=\s*15/, 'a margem do html2pdf deve ser 15mm');
 });
 
-/* ---------- 4b. proporção A4 (v3.0.9) ---------- */
+/* ---------- 4b. proporção A4 (v3.0.10) ---------- */
 
 test('exportPDF injeta o fix de layout do container do html2pdf (left:0)', () => {
   const body = js.slice(js.indexOf('async function exportPDF'));
@@ -239,14 +239,14 @@ test('nenhuma regra do CSS marca .doc-items/.pd-table tr com page-break-inside',
   assertMatch(combined, /\.doc-accept/, 'o aceite continua protegido');
 });
 
-/* ---------- 5. cache busting ?v=3.0.9 ---------- */
+/* ---------- 5. cache busting ?v=3.0.10 ---------- */
 
-test('o CSS é carregado com ?v=3.0.9', () => {
-  assertMatch(html, /href="src\/css\/style\.css\?v=3\.0\.9"/, 'cache busting do CSS');
+test('o CSS é carregado com ?v=3.0.10', () => {
+  assertMatch(html, /href="src\/css\/style\.css\?v=3\.0\.10"/, 'cache busting do CSS');
 });
 
-test('o JS é carregado com ?v=3.0.9', () => {
-  assertMatch(html, /src="src\/js\/script\.js\?v=3\.0\.9"/, 'cache busting do JS');
+test('o JS é carregado com ?v=3.0.10', () => {
+  assertMatch(html, /src="src\/js\/script\.js\?v=3\.0\.10"/, 'cache busting do JS');
 });
 
 test('não restam referências sem versão aos assets locais', () => {
@@ -254,16 +254,16 @@ test('não restam referências sem versão aos assets locais', () => {
   assertNoMatch(html, /src="src\/js\/script\.js"/, 'JS sem query de versão');
 });
 
-test('o rodapé exibe a versão 3.0.9', () => {
-  assertMatch(html, /v3\.0\.9/, 'a versão visível deve ser 3.0.9');
+test('o rodapé exibe a versão 3.0.10', () => {
+  assertMatch(html, /v3\.0\.10/, 'a versão visível deve ser 3.0.10');
 });
 
-test('o CHANGELOG documenta a versão 3.0.9', () => {
-  assertMatch(read('CHANGELOG.md'), /##\s*\[3\.0\.9\]/, 'entrada 3.0.9 no CHANGELOG');
+test('o CHANGELOG documenta a versão 3.0.10', () => {
+  assertMatch(read('CHANGELOG.md'), /##\s*\[3\.0\.10\]/, 'entrada 3.0.10 no CHANGELOG');
 });
 
 
-/* ---------- 5b. campos de assinatura (v3.0.9) ---------- */
+/* ---------- 5b. campos de assinatura (v3.0.10) ---------- */
 
 test('o formulário tem campos de assinatura para Performance Ocupacional e empresa cliente', () => {
   assertMatch(html, /id="sigPerformance"/, 'campo Performance Ocupacional');
@@ -301,7 +301,7 @@ test('o rascunho persiste os campos de assinatura', () => {
   assertMatch(js, /sigClient:\s*sigClient/, 'salva empresa cliente');
 });
 
-/* ---------- 6. rodapé paginado e quebra condicional (v3.0.9) ---------- */
+/* ---------- 6. rodapé paginado e quebra condicional (v3.0.10) ---------- */
 
 test('existe a função de carimbo do rodapé paginado', () => {
   assertMatch(js, /function stampPdfFooters\(pdf, info/,
@@ -375,10 +375,24 @@ test('a quebra antes das assinaturas é condicional (função de medida)', () =>
   const body = js.slice(js.indexOf('async function exportPDF'));
   assertMatch(js, /function needsPageBreakBeforeSignatures/,
     'a decisão de quebra precisa ser calculada');
-  assertMatch(body, /before:\s*breakBeforeSignatures\s*\?\s*\['\.doc-signatures'\]\s*:\s*\[\]/,
+  assertMatch(body, /before:\s*breakBeforeSignatures\s*\?\s*\['\.sig-form'\]\s*:\s*\[\]/,
     'o before só deve conter as assinaturas quando a quebra for necessária');
-  assertNoMatch(body, /before:\s*\['\.doc-signatures'\]/,
+  assertNoMatch(body, /before:\s*\['\.sig-form'\]/,
     'a quebra incondicional da v3.0.6 foi substituída');
+});
+
+test('a medida e a quebra miram o CARTÃO .sig-form, nunca a grade interna (v3.0.10)', () => {
+  // Regression guard: alvo na grade .doc-signatures fazia o plugin do html2pdf
+  // abrir DOIS espaçadores (avoid no cartão + before na grade) — cartão rasgado
+  // e página quase em branco antes das assinaturas.
+  const body = js.slice(js.indexOf('async function exportPDF'));
+  assertMatch(body, /querySelector\('\.sig-form'\)/,
+    'a medida deve cobrir o cartão inteiro (título + descrição + assinaturas)');
+  assertNoMatch(body, /\['\.doc-signatures'\]/,
+    'a grade interna não pode ser alvo de `before` (pad duplo que rasga o cartão)');
+  // O fallback seguro para ambientes sem medida (jsdom) continua existindo:
+  assertMatch(js, /if\(!height \|\| !isFinite\(height\)[\s\S]*?return true;/,
+    'sem medidas confiáveis, quebra por segurança');
 });
 
 test('a medida decide certo: cabe → sem quebra; não cabe → quebra', () => {
@@ -409,16 +423,68 @@ test('a altura útil da página bate com o A4 (297mm − 2×15mm)', () => {
 });
 
 test('o CSS só quebra a página com a classe .force-signature-break', () => {
-  assertMatch(css, /#proposalDoc\.pdf-export-target\.force-signature-break \.doc-signatures\s*\{[^}]*page-break-before:\s*always/,
-    'a quebra deve depender da classe aplicada pelo JS');
+  // v3.0.10: a regra mira o CARTÃO .sig-form (antes era a grade interna —
+  // o plugin rasgava o cartão com espaçador duplo).
+  assertMatch(css, /#proposalDoc\.pdf-export-target\.force-signature-break \.sig-form\s*\{[^}]*page-break-before:\s*always/,
+    'a quebra deve depender da classe aplicada pelo JS e mirar o cartão inteiro');
   const unconditional = stripComments(css)
-    .match(/#proposalDoc\.pdf-export-target \.doc-signatures\s*\{[^}]*\}/g) || [];
+    .match(/#proposalDoc\.pdf-export-target \.(doc-signatures|sig-form)\s*\{[^}]*\}/g) || [];
   unconditional.forEach((r) => {
     assertNoMatch(r, /page-break-before:\s*always/,
       'não pode restar quebra incondicional antes das assinaturas');
   });
   assertMatch(js, /classList\.toggle\('force-signature-break'/, 'o JS liga/desliga a classe');
   assertMatch(js, /classList\.remove\('force-signature-break'\)/, 'a classe deve ser limpa no finally');
+});
+
+/* ---------- 6b. proteção das linhas da tabela de itens (v3.0.10) ---------- */
+
+test('existe a decisão de cruzamento de página por linha (rowCrossesPageBreak)', () => {
+  const cross = loadFn('rowCrossesPageBreak', ['A4_CONTENT_HEIGHT_PX', 'PAGE_FIT_TOLERANCE_PX']);
+  const PAGE = 1008;
+  assertEqual(cross(500, 40, PAGE), false, 'linha inteira na página não recebe espaçador');
+  assertEqual(cross(990, 40, PAGE), true, 'linha que cruza o fim da página recebe espaçador');
+  assertEqual(cross(980, 28, PAGE), false, 'linha que termina exatamente no limite não cruza');
+  assertEqual(cross(1500, 40, PAGE), false, 'linha inteira na 2ª página não cruza');
+  assertEqual(cross(1980, 40, PAGE), true, 'cruzamento na 2ª página também é detectado');
+  assertEqual(cross(0, 0, PAGE), false, 'sem medida (jsdom), nenhum espaçador é inserido');
+  assertEqual(cross(300, 1200, PAGE), false, 'linha maior que a página não ganha espaçador inútil');
+});
+
+test('os espaçadores da tabela são <tr> válidos dentro do <tbody> (nunca <div> no tbody)', () => {
+  assertMatch(js, /function protectItemsTableAgainstSplitRows\(/, 'a proteção deve existir');
+  const start = js.indexOf('function protectItemsTableAgainstSplitRows');
+  const body = js.slice(start, js.indexOf('async function exportPDF'));
+  assertMatch(body, /createElement\('tr'\)/, 'o espaçador de linha é uma <tr> — válida no <tbody>');
+  assertMatch(body, /tbody\.insertBefore/, 'a <tr> entra dentro do <tbody>, antes da linha afetada');
+  assertMatch(body, /colSpan/, 'a célula do espaçador ocupa todas as colunas da tabela');
+  assertMatch(body, /'pdf-page-spacer'/, 'o espaçador é identificado por classe própria');
+  // A exceção é o <thead>: ali uma <tr> antes dele seria inválida, então a
+  // tabela inteira é afastada com uma <div> FORA da tabela.
+  assertMatch(body, /tableEl\.parentNode\.insertBefore[\s\S]*?tableEl\)/,
+    'o caso do <thead> afasta a tabela com <div> fora dela');
+});
+
+test('os espaçadores entram antes da medida das assinaturas e saem no finally', () => {
+  const body = js.slice(js.indexOf('async function exportPDF'));
+  const idxProtect = body.indexOf('protectItemsTableAgainstSplitRows(proposalDoc');
+  const idxMeasure = body.indexOf('needsPageBreakBeforeSignatures(proposalDoc');
+  assert(idxProtect > -1, 'a proteção das linhas deve ser chamada na exportação');
+  assert(idxMeasure > -1, 'a medida das assinaturas deve existir');
+  assert(idxProtect < idxMeasure,
+    'os espaçadores deslocam o documento para baixo — a medida precisa vir depois deles');
+  assertMatch(body, /finally\s*\{[\s\S]*?pdf-page-spacer[\s\S]*?force-signature-break/,
+    'os espaçadores saem do DOM no finally, junto com as classes de exportação');
+});
+
+test('o rodapé do documento (.doc-footer) não pode ser fatiado', () => {
+  const body = js.slice(js.indexOf('async function exportPDF'));
+  assertMatch(body, /avoid:\s*\[[^\]]*\.doc-footer/, 'o rodapé entra no avoid do html2pdf');
+  const exportRules = css.match(/#proposalDoc\.pdf-export-target[^{]*\{[^}]*page-break-inside:\s*avoid;[^}]*\}/g) || [];
+  assert(exportRules.join('').includes('.doc-footer'), 'o CSS de exportação também protege o rodapé');
+  const printStart = css.indexOf('@media print');
+  const printBlock = css.slice(printStart, css.indexOf('#proposalDoc.pdf-export-target', printStart));
+  assert(stripComments(printBlock).includes('.doc-footer'), 'o fallback de impressão protege o rodapé');
 });
 
 test('a impressão nativa não desperdiça uma folha com as assinaturas', () => {
@@ -488,8 +554,8 @@ test('[dom] index.html referencia CSS e JS versionados', async () => {
   const script = document.querySelector('script[src^="src/js/script.js"]');
   assert(link, 'o CSS local deve estar referenciado');
   assert(script, 'o JS local deve estar referenciado');
-  assertEqual(link.getAttribute('href'), 'src/css/style.css?v=3.0.9', 'href do CSS');
-  assertEqual(script.getAttribute('src'), 'src/js/script.js?v=3.0.9', 'src do JS');
+  assertEqual(link.getAttribute('href'), 'src/css/style.css?v=3.0.10', 'href do CSS');
+  assertEqual(script.getAttribute('src'), 'src/js/script.js?v=3.0.10', 'src do JS');
 });
 
 /* ---------- helpers ---------- */
@@ -609,7 +675,7 @@ const run = async () => {
   let pass = 0;
   const failures = [];
 
-  console.log('\n  Correção do PDF em branco — v3.0.9\n');
+  console.log('\n  Correção do PDF em branco — v3.0.10\n');
   for (const { name, fn } of tests) {
     try {
       await fn();

@@ -460,14 +460,20 @@ function assertCanvasHasContent(canvas){
   throw new Error('O PDF sairia em branco: o preview não foi renderizado a tempo.');
 }
 
-/* Quebra inteligente antes das assinaturas (v3.0.7).
+/* Quebra inteligente antes das assinaturas (v3.0.7, alvo revisto na v3.0.10).
    Até a v3.0.6 a seção de assinaturas era SEMPRE empurrada para uma página nova
    (`page-break-before: always`). Isso protegia o bloco de ser cortado ao meio,
    mas em propostas curtas gerava uma última página quase vazia — só com as duas
    linhas de assinatura.
-   Agora medimos: se o bloco inteiro cabe no espaço que resta na página atual,
-   não há motivo para quebrar (o `page-break-inside: avoid` já impede o corte).
-   Só forçamos a quebra quando o bloco realmente não caberia. */
+   A medida cobre os dois extremos: se o bloco inteiro cabe no espaço que resta
+   na página atual, não há motivo para quebrar (o `page-break-inside: avoid` já
+   impede o corte); só forçamos a quebra quando o bloco realmente não caberia.
+   v3.0.10 — quem é medido (e quebrado) passou a ser o CARTÃO .sig-form inteiro
+   (título + descrição + grade de assinaturas), e não mais a grade interna
+   .doc-signatures. Com o alvo na grade, o plugin do html2pdf aplicava DUAS
+   quebras — uma antes do cartão (via `avoid`) e outra antes da grade (via
+   `before`) — rasgando o cartão ao meio e criando uma página quase em branco
+   com um espaçador de ~930px dentro do próprio cartão. */
 function needsPageBreakBeforeSignatures(docEl, sigEl, pageHeightPx = A4_CONTENT_HEIGHT_PX){
   if(!docEl || !sigEl || typeof sigEl.getBoundingClientRect !== 'function') return true;
 
@@ -484,6 +490,78 @@ function needsPageBreakBeforeSignatures(docEl, sigEl, pageHeightPx = A4_CONTENT_
   const usedOnCurrentPage = top % pageHeightPx;
   const remaining = pageHeightPx - usedOnCurrentPage;
   return remaining < height + PAGE_FIT_TOLERANCE_PX;
+}
+
+/* Proteção das linhas da tabela de itens contra o corte do canvas (v3.0.10).
+   O plugin de quebra do html2pdf não pode proteger <tr>: ele empurra blocos
+   inserindo <div> de espaçamento, e uma <div> dentro de <tbody> é HTML inválido
+   (foi o bug dos "buracos" da v3.0.5, quando a página ganhava vazios enormes).
+   A saída é medir aqui — com o layout de exportação já aplicado — e inserir
+   <tr> espaçadores, VÁLIDOS dentro do <tbody>, com a altura exata do que falta
+   para o fim da página. A linha que cruzaria o corte passa a começar inteira
+   no topo da página seguinte. As medidas são relativas ao topo do documento
+   exportado, exatamente como o plugin enxerga o clone (overlay no top:0). */
+function rowCrossesPageBreak(topPx, heightPx, pageHeightPx = A4_CONTENT_HEIGHT_PX){
+  if(!heightPx || !isFinite(heightPx) || !isFinite(topPx) || topPx < 0) return false;
+  // Linha maior que uma página inteira: espaçador nenhum resolveria.
+  if(heightPx + PAGE_FIT_TOLERANCE_PX >= pageHeightPx) return false;
+  const startPage = Math.floor(topPx / pageHeightPx);
+  const endPage = Math.floor((topPx + heightPx - 1) / pageHeightPx);
+  return endPage > startPage;
+}
+
+function protectItemsTableAgainstSplitRows(docEl, tableEl, pageHeightPx = A4_CONTENT_HEIGHT_PX){
+  if(!docEl || !tableEl || typeof docEl.getBoundingClientRect !== 'function') return 0;
+  const tbody = tableEl.tBodies && tableEl.tBodies[0];
+  if(!tbody) return 0;
+  const docTop = docEl.getBoundingClientRect().top;
+  let inserted = 0;
+
+  const makeTrSpacer = (cols, padPx)=>{
+    const tr = document.createElement('tr');
+    tr.className = 'pdf-page-spacer';
+    tr.setAttribute('aria-hidden', 'true');
+    const td = document.createElement('td');
+    td.colSpan = Math.max(1, cols || 4);
+    td.style.cssText = `height:${Math.ceil(padPx)}px;padding:0;border:0;background:transparent;font-size:0;line-height:0`;
+    tr.appendChild(td);
+    return tr;
+  };
+  const makeDivSpacer = (padPx)=>{
+    const div = document.createElement('div');
+    div.className = 'pdf-page-spacer';
+    div.setAttribute('aria-hidden', 'true');
+    div.style.height = `${Math.ceil(padPx)}px`;
+    return div;
+  };
+
+  // Cabeçalho (<thead>): se o fim da página cai sobre ele, afasta a TABELA
+  // inteira — um <tr> antes do <thead> seria inválido (mesma armadilha da
+  // v3.0.5), então aqui o espaçador é uma <div> entre o container e a tabela,
+  // onde <div> é permitida.
+  const thead = tableEl.tHead;
+  if(thead && tableEl.parentNode){
+    const headRect = thead.getBoundingClientRect();
+    const headTop = headRect.top - docTop;
+    if(rowCrossesPageBreak(headTop, headRect.height, pageHeightPx)){
+      tableEl.parentNode.insertBefore(makeDivSpacer(pageHeightPx - (headTop % pageHeightPx)), tableEl);
+      inserted++;
+    }
+  }
+
+  // Linhas do corpo: a posição é relida a cada iteração — cada espaçador
+  // inserido desloca as linhas abaixo, e a medição seguinte já enxerga o novo
+  // layout (getBoundingClientRect força o reflow síncrono).
+  const rows = Array.prototype.slice.call(tbody.rows).filter(r=> !r.classList || !r.classList.contains('pdf-page-spacer'));
+  rows.forEach(tr=>{
+    if(typeof tr.getBoundingClientRect !== 'function') return;
+    const rect = tr.getBoundingClientRect();
+    const top = rect.top - docTop;
+    if(!rowCrossesPageBreak(top, rect.height, pageHeightPx)) return;
+    tbody.insertBefore(makeTrSpacer(tr.children.length, pageHeightPx - (top % pageHeightPx)), tr);
+    inserted++;
+  });
+  return inserted;
 }
 
 /* Rodapé paginado (v3.0.7): "Página X de Y" + identificação da proposta em
@@ -579,9 +657,17 @@ async function exportPDF(){
   // Deixa o browser aplicar o layout de exportação antes de medir/desenhar.
   await new Promise(r=> requestAnimationFrame(()=> requestAnimationFrame(r)));
 
+  // v3.0.10: afasta do fim de página qualquer linha da tabela de itens que
+  // seria fatiada ao meio pelo corte do canvas. Os espaçadores entram ANTES da
+  // medida das assinaturas (eles deslocam tudo para baixo) e saem no finally.
+  const itemsTable = document.getElementById('pd_items');
+  if(itemsTable) protectItemsTableAgainstSplitRows(proposalDoc, itemsTable);
+
   // Decide a quebra antes das assinaturas COM O LAYOUT DE EXPORTAÇÃO JÁ APLICADO
   // (a medida só vale a 680px de largura, que é como o documento será capturado).
-  const signaturesEl = document.getElementById('docSignatures');
+  // v3.0.10: o alvo é o CARTÃO .sig-form inteiro — medir a grade interna
+  // (.doc-signatures) fazia o plugin rasgar o cartão com um espaçador duplo.
+  const signaturesEl = proposalDoc.querySelector('.sig-form') || document.getElementById('docSignatures');
   const breakBeforeSignatures = needsPageBreakBeforeSignatures(proposalDoc, signaturesEl);
   proposalDoc.classList.toggle('force-signature-break', breakBeforeSignatures);
   if(breakBeforeSignatures){
@@ -608,17 +694,21 @@ async function exportPDF(){
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
     pagebreak: {
       mode: ['css', 'legacy'],
-      // v3.0.7: a quebra antes das assinaturas deixou de ser incondicional.
-      // Ela só entra quando o bloco não cabe no que resta da página — assim
-      // nenhuma proposta curta termina com uma página quase vazia, e o bloco
-      // continua protegido de cortes pelo `avoid` abaixo.
-      before: breakBeforeSignatures ? ['.doc-signatures'] : [],
+      // v3.0.7 (alvo corrigido na v3.0.10 — .sig-form): a quebra antes das
+      // assinaturas não é incondicional. Ela só entra quando o CARTÃO não cabe
+      // no que resta da página — assim nenhuma proposta curta termina com uma
+      // página quase vazia, e o cartão continua protegido de cortes pelo
+      // `avoid` abaixo. O alvo era a grade interna (.doc-signatures): o plugin
+      // empurrava o cartão pelo `avoid` e ainda aplicava o `before` na grade,
+      // gerando espaçador duplo DENTRO do cartão (rasgo + página quase vazia).
+      before: breakBeforeSignatures ? ['.sig-form'] : [],
       // Blocos que NUNCA devem ser quebrados no meio. A tabela (`.pd-table`)
-      // ficou de fora porque o plugin tenta aplicar `page-break-inside`
+      // fica de fora porque o plugin tenta aplicar `page-break-inside`
       // via `mode: 'css'` e acaba injetando divs dentro do <tbody>,
-      // criando buracos enormes. A tabela quebra naturalmente entre linhas
-      // (seguro, pois cada linha é uma unidade completa de informação).
-      avoid: ['.doc-header', '.doc-kv', '.doc-totals', '.billing-info', '.billing-section', '.doc-accept', '.sig-form', '.doc-signatures', '.sig-block', '.payment-info-section']
+      // criando buracos enormes. As linhas da tabela são protegidas por
+      // medição própria (protectItemsTableAgainstSplitRows), com <tr>
+      // espaçadores válidos — veja a v3.0.10 no CHANGELOG.
+      avoid: ['.doc-header', '.doc-kv', '.doc-totals', '.billing-info', '.billing-section', '.doc-accept', '.sig-form', '.doc-signatures', '.sig-block', '.payment-info-section', '.doc-footer']
     }
   };
 
@@ -650,6 +740,9 @@ async function exportPDF(){
   } finally {
     const fixEl = document.getElementById('html2pdf-layout-fix');
     if(fixEl) fixEl.remove();
+    // Espaçadores de paginação da tabela também saem: o preview volta a ser
+    // exatamente o que o usuário vê na tela.
+    $$('.pdf-page-spacer', proposalDoc).forEach(el=> el.remove());
     proposalDoc.classList.remove('force-signature-break');
     proposalDoc.classList.remove('pdf-export-target');
     document.body.classList.remove('is-exporting-pdf');

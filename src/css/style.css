@@ -338,7 +338,9 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
   /* v3.0.5: .doc-items e .pd-table tr ficam fora do page-break-inside também na
      impressão do navegador (fallback) — evita empurrar a tabela inteira para a
      próxima página quando ela é grande. */
-  .doc-header, .doc-kv, .doc-totals, .billing-info, .billing-section, .doc-accept, .sig-form, .sig-block {
+  /* v3.0.10: .doc-footer entra na lista — o rodapé do documento não pode ser
+     fatiado no meio do texto nem na impressão nativa. */
+  .doc-header, .doc-kv, .doc-totals, .billing-info, .billing-section, .doc-accept, .sig-form, .sig-block, .doc-footer {
     page-break-inside: avoid;
     break-inside: avoid;
   }
@@ -384,7 +386,8 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
 #proposalDoc.pdf-export-target .doc-accept,
 #proposalDoc.pdf-export-target .sig-form,
 #proposalDoc.pdf-export-target .doc-signatures,
-#proposalDoc.pdf-export-target .sig-block {
+#proposalDoc.pdf-export-target .sig-block,
+#proposalDoc.pdf-export-target .doc-footer {
   page-break-inside: avoid;
   break-inside: avoid;
 }
@@ -402,10 +405,27 @@ input.error, textarea.error, select.error { border-color:var(--error) !important
    com o layout de exportação aplicado e só liga `.force-signature-break` quando
    ele não cabe no espaço restante da página — antes disso, uma proposta curta
    terminava com uma folha quase vazia só para as assinaturas. O corte no meio do
-   bloco continua impossível por causa do `page-break-inside: avoid` acima. */
-#proposalDoc.pdf-export-target.force-signature-break .doc-signatures {
+   bloco continua impossível por causa do `page-break-inside: avoid` acima.
+   v3.0.10: o alvo da regra passou da grade interna (.doc-signatures) para o
+   CARTÃO .sig-form inteiro. Com o alvo na grade, o plugin do html2pdf abria
+   dois espaçadores — um antes do cartão (avoid) e outro antes da grade
+   (before) — e a proposta saía com o cartão rasgado e uma página praticamente
+   em branco entre o título e as linhas de assinatura. */
+#proposalDoc.pdf-export-target.force-signature-break .sig-form {
   page-break-before: always;
   break-before: page;
+}
+/* Espaçadores de paginação da tabela de itens (v3.0.10): o JS insere uma <tr>
+   dessas antes de cada linha que cruzaria o corte do canvas, empurrando a linha
+   inteira para a página seguinte. É HTML válido dentro do <tbody> — a <div>
+   que o plugin do html2pdf inseria ali era inválida e causava os "buracos" da
+   v3.0.5. O espaçador nunca pode aparecer: só altura, sem borda/fundo/conteúdo. */
+#proposalDoc.pdf-export-target tr.pdf-page-spacer td {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  font-size: 0;
+  line-height: 0;
 }
 /* O preview sticky deslocaria o documento durante a captura; fixa no fluxo. */
 body.is-exporting-pdf .preview-sticky { position: static; }
