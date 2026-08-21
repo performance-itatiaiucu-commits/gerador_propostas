@@ -4,6 +4,20 @@ Baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e [SemVer
 
 ---
 
+## [3.0.10] — 2026-08-21 — Quebra de página: cartão de assinaturas intacto e tabela protegida
+
+### 🐛 Corrigido
+- **Cartão de assinaturas rasgado + página quase em branco**: quando a quebra condicional disparava (proposta em que as assinaturas não cabiam no restante da página), o alvo era a grade interna `.doc-signatures` — que vive **dentro** do cartão `.sig-form` (título + descrição + grade). O plugin de quebra do html2pdf percorre os elementos em ordem de documento: primeiro empurrava o cartão inteiro pelo `avoid` e, em seguida, aplicava o `before` na grade — **dois espaçadores**, o segundo com ~930 px **dentro** do cartão. O PDF saía com uma página contendo só o topo do cartão e um vazio enorme, e as linhas de assinatura na página seguinte. A medida e a quebra agora miram o **cartão `.sig-form` inteiro**: um único espaçador, e o cartão (título + descrição + assinaturas) começa intacto no topo da página nova.
+- **Linhas da tabela de itens fatiadas ao meio**: em propostas longas, o fim de página podia cortar uma linha do `<tbody>` no meio do texto. O plugin do html2pdf não pode proteger `<tr>` (inseriria `<div>` inválida dentro do `<tbody>` — o bug dos “buracos” da v3.0.5). Solução: medição própria (`protectItemsTableAgainstSplitRows`) que insere `<tr class="pdf-page-spacer">` **válidos** com a altura exata do espaço restante da página, empurrando cada linha que cruzaria o corte para o topo da página seguinte. O `<thead>` recebe o mesmo cuidado via espaçador `<div>` **fora** da tabela (onde `<div>` é válida). Os espaçadores são removidos no `finally`, junto com as classes de exportação — o preview nunca fica sujo.
+- **Rodapé do documento (`.doc-footer`) protegido**: entrou na lista `avoid` do html2pdf e nas regras de `page-break-inside: avoid` de exportação e de impressão — não é mais fatiado no meio do texto.
+
+### ✅ Testes
+- Novos casos unitários: a quebra mira `.sig-form` (e nunca mais `.doc-signatures`), matemática de `rowCrossesPageBreak` (cabe/cruza/limite exato/2ª página/linha gigante/sem medida), espaçadores `<tr>` válidos com `colSpan`, ordem “espaçadores → medida” e limpeza no `finally`, `.doc-footer` protegido na exportação e na impressão.
+- Novo caso de integração (jsdom, geometria simulada): a linha que cruza o fim da página recebe exatamente um espaçador `<tr class="pdf-page-spacer">` com `colspan`, o cartão de assinaturas **não** ganha quebra quando cabe, e os espaçadores somem ao final.
+- Suíte atualizada para `v3.0.10`.
+
+---
+
 ## [3.0.9] — 2026-08-20 — Assinatura da empresa cliente no PDF
 
 ### 🐛 Corrigido

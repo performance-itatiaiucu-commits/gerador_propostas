@@ -1,5 +1,5 @@
 /**
- * Teste de integração da exportação PDF (v3.0.9).
+ * Teste de integração da exportação PDF (v3.0.10).
  *
  * Carrega o index.html e o src/js/script.js REAIS em um DOM (jsdom) e executa
  * o fluxo de download de verdade, com um html2pdf falso no lugar da biblioteca.
@@ -122,6 +122,10 @@ async function boot({ canvasFactory = () => fakeCanvas(), failCanvas = false, pd
       stickyDisplay: sticky.style.display,
       sandboxPresent: !!window.document.getElementById('pdf-export-sandbox'),
       wrapPresent: !!window.document.getElementById('pdf-export-wrap'),
+      // v3.0.10: espaçadores de paginação da tabela + estado da quebra forçada
+      spacersInDoc: doc.querySelectorAll('.pdf-page-spacer').length,
+      spacerHtml: (doc.querySelector('.pdf-page-spacer') || {}).outerHTML || null,
+      forceBreakAtCapture: doc.classList.contains('force-signature-break'),
       // nenhum ancestral pode estar fora da viewport
       offscreenAncestor: (() => {
         for (let el = doc; el && el.tagName !== 'HTML'; el = el.parentElement) {
@@ -378,9 +382,10 @@ test('o PDF é configurado comprimido e com quebra condicional', async () => {
   assertEqual(opt.jsPDF.compress, true, 'compress deve estar ligado');
   assert(Array.isArray(opt.pagebreak.before), 'before deve ser uma lista');
   // Em jsdom não há layout: a medida é inconclusiva e o fluxo mantém a quebra
-  // (comportamento seguro herdado da v3.0.6).
-  assertEqual(opt.pagebreak.before.join(','), '.doc-signatures',
-    'sem medidas confiáveis, a quebra protetora permanece');
+  // (comportamento seguro herdado da v3.0.6). v3.0.10: o alvo é o cartão
+  // .sig-form inteiro, nunca a grade interna.
+  assertEqual(opt.pagebreak.before.join(','), '.sig-form',
+    'sem medidas confiáveis, a quebra protetora permanece — no cartão inteiro');
 });
 
 test('as assinaturas usam Performance Ocupacional e a empresa cliente preenchida', async () => {
@@ -406,6 +411,86 @@ test('a classe de quebra forçada é removida ao final', async () => {
   const doc = window.document.getElementById('proposalDoc');
   assert(!doc.classList.contains('force-signature-break'),
     '.force-signature-break não pode vazar para o preview');
+});
+
+/* ---------- v3.0.10: proteção das linhas da tabela + alvo da quebra ---------- */
+
+test('linha que cruza o fim da página recebe <tr> espaçador válido, e ele some ao final', async () => {
+  const { window, calls } = await boot();
+  fillForm(window);
+  const d = window.document;
+
+  // Geometria simulada (jsdom não tem layout): documento no topo; a 2ª linha da
+  // tabela cruza o fim da página 1 (1008px úteis); o cartão de assinaturas cabe
+  // folgado no que resta da 2ª página → nenhuma quebra forçada.
+  const doc = d.getElementById('proposalDoc');
+  const thead = d.querySelector('#pd_items thead');
+  const rows = Array.from(d.querySelectorAll('#pd_items tbody tr'));
+  const sigForm = d.querySelector('#proposalDoc .sig-form');
+  assert(rows.length >= 2 && thead && sigForm, 'precisa de tabela e assinaturas no documento');
+
+  // Atenção: buildPreview() recria as <tr> do <tbody> a cada exportação, então
+  // o mock resolve pela POSIção atual no documento (consultas ao DOM vivo), e
+  // não por referência capturada antes do clique.
+  window.Element.prototype.getBoundingClientRect = function () {
+    const liveRowIdx = Array.from(d.querySelectorAll('#pd_items tbody tr')).indexOf(this);
+    let r = { top: 0, height: 0 };
+    if (this === doc) r = { top: 0, height: 1400 };
+    else if (this === thead) r = { top: 850, height: 40 };
+    else if (liveRowIdx === 0) r = { top: 900, height: 40 };
+    else if (liveRowIdx === 1) r = { top: 990, height: 40 };   // 990 + 40 = 1030 > 1008 → cruza
+    else if (this === sigForm) r = { top: 1100, height: 200 }; // sobra(916) ≥ 224 → sem break
+    const top = r.top, height = r.height;
+    return { x: 0, y: top, top, height, bottom: top + height, left: 0, right: 680, width: 680, toJSON() { return {}; } };
+  };
+
+  await clickDownload(window);
+
+  const snap = calls.snapshotAtCapture;
+  assert(snap, 'a captura deve ter ocorrido');
+  assertEqual(snap.spacersInDoc, 1, 'exatamente a linha que cruza recebe espaçador');
+  assert(snap.spacerHtml && /^<tr/i.test(snap.spacerHtml),
+    'o espaçador é uma <tr> — HTML válido dentro de <tbody> (não a <div> da v3.0.5)');
+  assert(snap.spacerHtml.includes('colspan="4"'),
+    'a célula do espaçador ocupa as 4 colunas: ' + snap.spacerHtml);
+  assertEqual(snap.forceBreakAtCapture, false,
+    'cartão de assinaturas cabe na página → nenhuma quebra forçada');
+
+  // Depois da exportação o preview volta a ser exatamente o que o usuário vê.
+  assertEqual(doc.querySelectorAll('.pdf-page-spacer').length, 0,
+    'os espaçadores são removidos no finally');
+  const opt = calls.set.find((o) => o && o.pagebreak);
+  assertEqual(opt.pagebreak.before.join(','), '',
+    'sem necessidade de quebra, o before fica vazio');
+});
+
+test('quando o cartão de assinaturas não cabe, a quebra mira o cartão inteiro', async () => {
+  const { window, calls } = await boot();
+  fillForm(window);
+  const d = window.document;
+
+  const doc = d.getElementById('proposalDoc');
+  const sigForm = d.querySelector('#proposalDoc .sig-form');
+  // Cartão começa a 950px e tem 200px: 950 % 1008 = 950 usados, sobra 58px <
+  // 224px necessários → quebra forçada ANTES DO CARTÃO.
+  const rects = new Map([
+    [doc, { top: 0, height: 1400 }],
+    [sigForm, { top: 950, height: 200 }]
+  ]);
+  window.Element.prototype.getBoundingClientRect = function () {
+    const r = rects.get(this) || { top: 0, height: 0 };
+    const top = r.top || 0;
+    const height = r.height || 0;
+    return { x: 0, y: top, top, height, bottom: top + height, left: 0, right: 680, width: 680, toJSON() { return {}; } };
+  };
+
+  await clickDownload(window);
+
+  const snap = calls.snapshotAtCapture;
+  assertEqual(snap.forceBreakAtCapture, true, 'sem espaço, a quebra forçada é ligada');
+  const opt = calls.set.find((o) => o && o.pagebreak);
+  assertEqual(opt.pagebreak.before.join(','), '.sig-form',
+    'o before mira o CARTÃO .sig-form — nunca a grade interna .doc-signatures');
 });
 
 /* ---------- execução ---------- */
