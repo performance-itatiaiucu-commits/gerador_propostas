@@ -40,10 +40,14 @@
   <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="src/css/style.css?v=3.0.10">
+  <link rel="stylesheet" href="src/css/style.css?v=3.0.11">
 
   <!-- PDF engine -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- v3.0.11: bundle 0.14.0 — o 0.10.x embute html2canvas 1.0.0 (2021), que não
+       renderiza colunas de CSS Grid: as assinaturas em duas colunas (linhas +
+       nomes) e as grades de informações do cliente sumiam do PDF. O 0.14.0 embute
+       html2canvas 1.4.1, que renderiza o documento como o preview. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.14.0/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
@@ -456,11 +460,11 @@
 
     <footer class="app-footer">
       <div><strong>Grupo Performance Ocupacional</strong> — Gerador Corporativo 3.0 • Itaguara/MG (Doc/Treinamentos) • Itatiaiuçu/MG (Exames)</div>
-      <div class="small">Aplicativo criado por Filipe Goulart — Todos os direitos reservados • v3.0.10 • <span id="footerDate"></span></div>
+      <div class="small">Aplicativo criado por Filipe Goulart — Todos os direitos reservados • v3.0.11 • <span id="footerDate"></span></div>
     </footer>
   </div>
 
-  <script src="src/js/script.js?v=3.0.10"></script>
+  <script src="src/js/script.js?v=3.0.11"></script>
 </body>
 
 </html>
