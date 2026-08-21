@@ -4,6 +4,19 @@ Baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) e [SemVer
 
 ---
 
+## [3.0.10] — 2026-08-21 — Razão social na assinatura da Performance
+
+### 🔄 Alterado
+- A assinatura da Performance passa a exibir a razão social completa **PERFORMANCE SAÚDE E SEGURANCA OCUPACIONAL LTDA**, no preview e no PDF exportado (antes: `Performance Ocupacional`).
+- O campo de assinatura na etapa **Pagamento** já vem pré-preenchido com a razão social e continua editável.
+- Rascunhos salvos com o nome antigo (`Performance Ocupacional` / `Grupo Performance Ocupacional`) são migrados automaticamente ao carregar.
+- Cache busting `?v=3.0.10` em `src/css/style.css` e `src/js/script.js`; rodapé com a nova versão.
+
+### ✅ Testes
+- Testes unitários e de integração atualizados para a nova razão social na assinatura.
+
+---
+
 ## [3.0.9] — 2026-08-20 — Assinatura da empresa cliente no PDF
 
 ### 🐛 Corrigido

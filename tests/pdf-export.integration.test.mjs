@@ -1,5 +1,5 @@
 /**
- * Teste de integração da exportação PDF (v3.0.9).
+ * Teste de integração da exportação PDF (v3.0.10).
  *
  * Carrega o index.html e o src/js/script.js REAIS em um DOM (jsdom) e executa
  * o fluxo de download de verdade, com um html2pdf falso no lugar da biblioteca.
@@ -383,7 +383,7 @@ test('o PDF é configurado comprimido e com quebra condicional', async () => {
     'sem medidas confiáveis, a quebra protetora permanece');
 });
 
-test('as assinaturas usam Performance Ocupacional e a empresa cliente preenchida', async () => {
+test('as assinaturas usam a razão social da Performance e a empresa cliente preenchida', async () => {
   const { window } = await boot();
   fillForm(window);
 
@@ -393,9 +393,11 @@ test('as assinaturas usam Performance Ocupacional e a empresa cliente preenchida
   const fieldPerf = window.document.getElementById('sigPerformance');
 
   assert(perf && client && fieldClient && fieldPerf, 'campos e bloco de assinatura devem existir');
-  assertEqual(fieldPerf.value, 'Performance Ocupacional', 'campo Performance Ocupacional pré-preenchido');
+  assertEqual(fieldPerf.value, 'PERFORMANCE SAÚDE E SEGURANCA OCUPACIONAL LTDA',
+    'campo da Performance pré-preenchido com a razão social');
   assertEqual(fieldClient.value, 'Empresa Teste LTDA', 'empresa cliente preenchida automaticamente');
-  assertEqual(perf.textContent, 'Performance Ocupacional', 'PDF: Performance Ocupacional');
+  assertEqual(perf.textContent, 'PERFORMANCE SAÚDE E SEGURANCA OCUPACIONAL LTDA',
+    'PDF: razão social da Performance');
   assertEqual(client.textContent, 'Empresa Teste LTDA', 'PDF: empresa cliente');
 });
 

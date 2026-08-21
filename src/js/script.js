@@ -165,7 +165,16 @@ leadTime.addEventListener('input', ()=>{ if(previewUnlocked) buildPreview(); });
    Se o usuário editar o campo, o preenchimento automático pausa até o valor
    voltar a coincidir (ou ficar vazio). */
 let sigClientManual = false;
-const DEFAULT_SIG_PERFORMANCE = 'Performance Ocupacional';
+const DEFAULT_SIG_PERFORMANCE = 'PERFORMANCE SAÚDE E SEGURANCA OCUPACIONAL LTDA';
+/* Nomes usados antes da v3.1.0 na assinatura da Performance. Rascunhos antigos
+   são migrados automaticamente para a razão social atual. */
+const LEGACY_SIG_PERFORMANCE = ['Performance Ocupacional', 'Grupo Performance Ocupacional'];
+function normalizeSigPerformance(value){
+  const typed = (value == null ? '' : String(value)).trim();
+  if(!typed) return DEFAULT_SIG_PERFORMANCE;
+  if(LEGACY_SIG_PERFORMANCE.some(old => old.toLowerCase() === typed.toLowerCase())) return DEFAULT_SIG_PERFORMANCE;
+  return typed;
+}
 function syncSigClientFromCompany(){
   if(!sigClient) return;
   if(sigClientManual) return;
@@ -348,7 +357,7 @@ function loadDraftInternal(silent=false){
     company.value=d.company||''; contractType.value=d.contractType||''; responsible.value=d.responsible||''; phone.value=d.phone||'';
     email.value=d.email||''; taxId.value=d.taxId||''; address.value=d.address||''; city.value=d.city||''; stateEl.value=d.state||''; notes.value=d.notes||''; if(notesCount) notesCount.textContent=(d.notes||'').length;
     discountEl.value=d.discount||0; paymentMethod.value=d.payment||'À vista'; paymentMethod.dispatchEvent(new Event('change')); billingDaysInput.value=d.billingDays||''; leadTime.value=d.leadTime||'';
-    if(sigPerformance) sigPerformance.value = d.sigPerformance || DEFAULT_SIG_PERFORMANCE;
+    if(sigPerformance) sigPerformance.value = normalizeSigPerformance(d.sigPerformance);
     sigClientManual = !!d.sigClientManual;
     if(sigClient){
       if(d.sigClient != null && d.sigClient !== ''){
